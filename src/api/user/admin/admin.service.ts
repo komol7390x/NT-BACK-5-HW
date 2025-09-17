@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { AdminQueryService } from 'src/core/query/query-db';
+import { AdminQueryService } from 'src/core/query/admin-query-db';
 import { CryptoService } from 'src/infrastructure/crypto/Crypto';
 import { ISuccess } from 'src/common/database/success-res/success-interface';
 import { successRes } from 'src/common/database/success-res/success-res';
@@ -53,7 +53,7 @@ export class AdminService {
   // --------------------- GET ONE BY ID---------------------
   async findOne(id: number) {
     const data = await this.db.findById('admin', id);
-    
+
     // return success
     if (data?.message) {
       return successRes(data?.data);
