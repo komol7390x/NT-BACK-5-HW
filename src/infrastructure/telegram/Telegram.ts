@@ -29,9 +29,7 @@ export class TelegramService {
   }
 
   // send code 
-  async sendCode(data: { email: string; otp: string }) {
-    console.log(data);
-    
+  async sendCode(data: { email: string; otp: string }) {    
     if (!this.chatId) return;
     await this.bot.telegram.sendMessage(
       this.chatId,

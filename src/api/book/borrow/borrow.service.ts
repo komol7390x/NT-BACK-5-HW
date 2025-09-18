@@ -1,4 +1,8 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { CreateBorrowDto } from './dto/create-borrow.dto';
 import { UpdateBorrowDto } from './dto/update-borrow.dto';
 import { BaseService } from 'src/infrastructure/base/base-service';
@@ -10,6 +14,10 @@ import { BookService } from '../book/book.service';
 import { config } from 'src/config/env-config';
 import { TransactionService } from 'src/infrastructure/transaction/Transaction';
 import { successRes } from 'src/infrastructure/success-res/success-res';
+import type { IToken } from 'src/infrastructure/token/token-interface';
+import { AdminRoles } from 'src/common/enum/Role';
+import { ISuccessRes } from 'src/infrastructure/success-res/success-interface';
+import { any } from 'joi';
 
 @Injectable()
 export class BorrowService extends BaseService<
@@ -29,81 +37,132 @@ export class BorrowService extends BaseService<
     private readonly user: UserService,
 
     // transaction
-    private readonly transaction:TransactionService
+    private readonly transaction: TransactionService,
   ) {
     super(borrowRepo);
   }
 
   // ------------------------- CREATE -------------------------
   async createBorrow(createDto: CreateBorrowDto) {
-    const { user_id,book_id,return_date} = createDto;
+    const { user_id, book_id, return_date } = createDto;
 
     // check id
-    await this.user.findOneById(user_id)
-    const {data}=await this.book.findOneById(book_id)
+    const user: any = await this.user.getRepository.findOne({
+      where: { id: user_id, borrows: { overdue: false } },
+      relations: { borrows: true },
+      select: { borrows: true },
+    });
+
+    if (user?.borrows?.length > 3) {
+      throw new ConflictException(`You could not borrow book max:3`);
+    }
+
+    const { data } = await this.book.findOneById(book_id);
 
     // check date
-    if(!data[0].avialable){
-      throw new ConflictException(`this book => ${data[0].title} is not avialable`)
+    if (!data[0].avialable) {
+      throw new ConflictException(
+        `this book => ${data[0].title} is not avialable`,
+      );
     }
 
     // check date
-    const borrow_date=new Date().toISOString().split('T')[0]
-    const due_date=this.checkRetrunDate(return_date)
-    
-    const result={
+    const borrow_date = new Date().toISOString().split('T')[0];
+    const due_date = this.checkRetrunDate(return_date);
+
+    const result = {
       borrow_date,
       due_date,
       return_date,
       user_id,
-      book_id
-    }    
+      book_id,
+    };
 
-    const trans=await this.transaction.createTransaction(result)
-    if(trans){
-      const id=trans
-      const result=await this.borrowRepo.findOne({where:{id},
-            relations:{books:true,user:true},
-            select:{id:true,return_date:true,due_date:true,borrow_date:true,
-                books:{
-                    id:true,
-                    title:true,
-                    author:true,
-                    published_year:true
-                },
-                user:{
-                  id:true,
-                  email:true,
-                  full_name:true
-                }
-            }
-        })
-        if(!result){
-          throw new ConflictException(`Transaction not done`)
-        }
-        return successRes(result)
-    }
+    const id = await this.transaction.createTransaction(result);
+    if (id) return await this.returnBorrow(id);
+    throw new ConflictException(`Error Transaction`);
   }
 
   // ------------------------- UPDATE -------------------------
-  async updateBorrow(id: number, updateDto: UpdateBorrowDto) {
-    const { borrow_date, due_date } = updateDto;
+  async updateBorrow(id: number, updateDto: UpdateBorrowDto, user: IToken) {
+    const { return_date, user_id, book_id, overdue } = updateDto;
+    const { data }: any = await this.findOneById(id);
+    let userID = data.user_id;
+    let bookID = data.book_id;
 
-    
+    if (user.role == AdminRoles.SUPERADMIN || user.role == AdminRoles.ADMIN) {
+      if (user_id) {
+        await this.user.findOneById(user_id);
+        await this.borrowRepo.update(id, { user_id });
+        userID = user_id;
+      }
+      if (book_id) {
+        await this.book.findOneById(book_id);
+        await this.borrowRepo.update(id, { book_id });
+        bookID = book_id;
+      }
+    }
+    if (return_date && overdue) {
+      // check date
+      const borrow_date = new Date().toISOString().split('T')[0];
+      const due_date = this.checkRetrunDate(return_date);
+
+      const result = {
+        borrow_date,
+        due_date,
+        return_date,
+        user_id: userID,
+        book_id: bookID,
+        overdue,
+      };
+
+      const id = await this.transaction.updateTransaction(result);
+      console.log(id);
+
+      if (id) return await this.returnBorrow(id);
+      throw new ConflictException(`Error Transaction`);
+    }
   }
 
-    // ------------------------- CHECK DATE -------------------------
-    checkRetrunDate(date:string):string{
-      const checkDate=new Date(date).getTime()
-      const dueDate=new Date().getTime()+(Number(config.BORROW_TIME)*24*60*60*1000)
-      
-      const due_date=new Date(dueDate).toISOString().split('T')[0]
+  // ------------------------- CHECK DATE -------------------------
+  checkRetrunDate(date: string): string {
+    const checkDate = new Date(date).getTime();
+    const dueDate =
+      new Date().getTime() + Number(config.BORROW_TIME) * 24 * 60 * 60 * 1000;
 
-      if(checkDate>dueDate){
-        throw new BadRequestException(`You max borrow Book ${config.BORROW_TIME}=> Time: ${due_date}`)
-      }
+    const due_date = new Date(dueDate).toISOString().split('T')[0];
 
-      return due_date
+    if (checkDate > dueDate) {
+      throw new BadRequestException(
+        `You max borrow Book ${config.BORROW_TIME}=> Time: ${due_date}`,
+      );
     }
 
+    return due_date;
+  }
+  // ------------------------------ ------------------------------------------
+  async returnBorrow(id: number) {
+    const { data }: any = await this.findOneBy({
+      relations: { user: true, books: true },
+      where: { id, is_deleted: false },
+      select: {
+        id: true,
+        borrow_date: true,
+        due_date: true,
+        return_date: true,
+        overdue: true,
+        user: {
+          id: true,
+          email: true,
+          full_name: true,
+        },
+        books: {
+          id: true,
+          title: true,
+          author: true,
+        },
+      },
+    });
+    return successRes(data);
+  }
 }

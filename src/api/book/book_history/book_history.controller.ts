@@ -33,8 +33,15 @@ export class BookHistoryController {
       SwaggerDate.BookhistoryDate,
     ]),
   )
+
+  // GUARD
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN)
+
   // ENDPOINT
   @Get()
+  @ApiBearerAuth()
+
   // FIND ALL
   findAll() {
     return this.bookHistoryRepo.findAll();
@@ -44,8 +51,20 @@ export class BookHistoryController {
   // SWAGGER
   @ApiOperation({ summary: 'Get One Book History' })
   @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.BookhistoryDate))
+
+  // GUARD
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(
+    AdminRoles.SUPERADMIN,
+    AdminRoles.ADMIN,
+    UserRoles.LIBRARIAN,
+    UserRoles.READER,
+  )
+
   // ENDPOINT
   @Get(':id')
+  @ApiBearerAuth()
+
   // FIND ONE
   findOne(@Param('id') id: number) {
     return this.bookHistoryRepo.findOneById(+id);
@@ -55,12 +74,15 @@ export class BookHistoryController {
   // SWAGGER
   @ApiOperation({ summary: 'Update Book History' })
   @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.BookhistoryDate))
+
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER)
+  @AccessRoles(AdminRoles.SUPERADMIN)
+
   // ENDPOINT
   @Patch(':id')
   @ApiBearerAuth()
+
   // UPDATE
   update(
     @Param('id') id: number,
@@ -73,12 +95,15 @@ export class BookHistoryController {
   // SWAGGER
   @ApiOperation({ summary: 'Soft Delete Book History' })
   @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.BookhistoryDate))
+
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER)
+  @AccessRoles(AdminRoles.SUPERADMIN)
+
   // ENDPOINT
   @Patch(':id/soft')
   @ApiBearerAuth()
+
   // SOFT DELETE
   softRemove(@Param('id') id: number) {
     return this.bookHistoryRepo.softDelete(+id);
@@ -88,12 +113,15 @@ export class BookHistoryController {
   // SWAGGER
   @ApiOperation({ summary: 'Delete Book History' })
   @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.BookhistoryDate))
+
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
   @AccessRoles(AdminRoles.SUPERADMIN)
+
   // ENDPOINT
   @Delete(':id')
   @ApiBearerAuth()
+
   // DELETE
   remove(@Param('id') id: number) {
     return this.bookHistoryRepo.remove(+id);

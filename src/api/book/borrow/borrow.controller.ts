@@ -25,7 +25,7 @@ import type { IToken } from 'src/infrastructure/token/token-interface';
 
 @Controller('borrow')
 export class BorrowController {
-  constructor(private readonly borrowService: BorrowService) { }
+  constructor(private readonly borrowService: BorrowService) {}
 
   // ------------------ CREATE ------------------
   //SWAGGER
@@ -46,15 +46,19 @@ export class BorrowController {
   @ApiBearerAuth()
 
   // CREATE
-  create(@Body() createBorrowDto: CreateBorrowDto,
-    @GetUser('user') user: IToken) {
-    const { user_id } = createBorrowDto
-    if (user.id == user_id
-      || user.role == AdminRoles.SUPERADMIN
-      || user.role == AdminRoles.ADMIN) {
+  create(
+    @Body() createBorrowDto: CreateBorrowDto,
+    @GetUser('user') user: IToken,
+  ) {
+    const { user_id } = createBorrowDto;
+    if (
+      user.id == user_id ||
+      user.role == AdminRoles.SUPERADMIN ||
+      user.role == AdminRoles.ADMIN
+    ) {
       return this.borrowService.createBorrow(createBorrowDto);
     } else {
-      throw new ConflictException(`You areant create this borrow`)
+      throw new ConflictException(`You areant create this borrow`);
     }
   }
 
@@ -74,6 +78,7 @@ export class BorrowController {
 
   //ENDPONT
   @Get()
+  @ApiBearerAuth()
 
   //FINDALL
   findAll() {
@@ -85,7 +90,7 @@ export class BorrowController {
         due_date: true,
         overdue: true,
         books: { id: true, title: true },
-        user: { id: true, email: true, full_name: true }
+        user: { id: true, email: true, full_name: true },
       },
       order: { createdAt: 'DESC' },
     });
@@ -102,21 +107,42 @@ export class BorrowController {
 
   // ENDPONT
   @Get(':id')
-
+  @ApiBearerAuth()
   // GET ONE
-  async findOne(@Param('id') id: number,
-    @GetUser('user') user: IToken
-  ) {
-
+  async findOne(@Param('id') id: number, @GetUser('user') user: IToken) {
     //check user id
-    const { data } = await this.borrowService.findOneById(id)
-    if (data[0].user_id == user.id || user.role == AdminRoles.SUPERADMIN || user.role == AdminRoles.ADMIN)
-    { return this.borrowService.findOneById(+id, {
+    const { data } = await this.borrowService.findOneById(id);
+    if (
+      data[0].user_id == user.id ||
+      user.role == AdminRoles.SUPERADMIN ||
+      user.role == AdminRoles.ADMIN
+    ) {
+      return this.borrowService.findOneById(+id, {
+        relations: { books: true, user: true },
         where: { is_deleted: false },
+        select: {
+          id: true,
+          borrow_date: true,
+          due_date: true,
+          return_date: true,
+          overdue: true,
+          books: {
+            id: true,
+            title: true,
+            avialable: true,
+          },
+          user: {
+            id: true,
+            full_name: true,
+            email: true,
+            is_active: true,
+          },
+        },
         take: 1,
-      });}else{
-        throw new ConflictException(`You areant show this borrow`)
-      }
+      });
+    } else {
+      throw new ConflictException(`You areant show this borrow`);
+    }
   }
 
   // ------------------ UPDATE ------------------
@@ -133,14 +159,20 @@ export class BorrowController {
   @ApiBearerAuth()
 
   // UPDATE
-  update(@Param('id') id: number, @Body() updateBorrowDto: UpdateBorrowDto, @GetUser('user') user: IToken) {
-    const { user_id } = updateBorrowDto
-    if (user.id == user_id
-      || user.role == AdminRoles.SUPERADMIN
-      || user.role == AdminRoles.ADMIN) {
-      return this.borrowService.updateBorrow(id, updateBorrowDto);
+  update(
+    @Param('id') id: number,
+    @Body() updateBorrowDto: UpdateBorrowDto,
+    @GetUser('user') user: IToken,
+  ) {
+    const { user_id } = updateBorrowDto;
+    if (
+      user.id == user_id ||
+      user.role == AdminRoles.SUPERADMIN ||
+      user.role == AdminRoles.ADMIN
+    ) {
+      return this.borrowService.updateBorrow(id, updateBorrowDto,user);
     } else {
-      throw new ConflictException(`You areant update this borrow`)
+      throw new ConflictException(`You areant update this borrow`);
     }
   }
 
