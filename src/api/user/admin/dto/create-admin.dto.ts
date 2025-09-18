@@ -1,18 +1,17 @@
-import { IsNotEmpty, IsString, IsStrongPassword } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsString, IsStrongPassword } from "class-validator";
 
 export class CreateAdminDto {
-    @ApiProperty({ name: 'name', description: 'Admin name', example: 'John Doe' })
+    @ApiProperty({ description: 'Admin full name', example: 'Admin User' })
     @IsString()
     @IsNotEmpty()
-    name: string
+    full_name: string
 
-    @ApiProperty({ name: 'username', description: 'Admin username', example: 'john_doe_1' })
-    @IsString()
+    @ApiProperty({ description: 'Admin full email', example: 'admin123' })
     @IsNotEmpty()
     username: string
 
-    @ApiProperty({ name: 'password', description: 'Admin password', example: '!@JohnDoe123@!' })
+    @ApiProperty({ description: 'Admin full password', example: '@Admin123!@' })
     @IsStrongPassword()
     @IsNotEmpty()
     password: string

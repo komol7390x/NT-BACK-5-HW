@@ -1,45 +1,53 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { config } from 'src/config/envConfig';
-import { HttpStatus, Logger, ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AllExceptionFilter } from 'src/infrastructure/exception/handle-error';
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { config } from "src/config/env-config";
+import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import cookieParser from 'cookie-parser'
 
 export class Application {
     static async main(): Promise<void> {
+
+        // ------------------ DATABASE ------------------
+        
         const app = await NestFactory.create(AppModule);
 
-        app.useGlobalFilters(new AllExceptionFilter())
-
         // ------------------ VALIDATSIYA ------------------
+
         app.useGlobalPipes(new ValidationPipe({
             whitelist: true,
             transform: true,
             forbidNonWhitelisted: true,
-            errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        }));
-
+            errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+        }))
         // ------------------ SWAGGER ------------------
         const configSwagger = new DocumentBuilder()
-            .setTitle('TEST')
+            .setTitle('Library')
             .setVersion('1.0.0')
             .addBearerAuth({
                 type: 'http',
-                scheme: 'bearer',
-                bearerFormat: 'JWT',
-                in: 'header',
+                scheme: 'Bearer',
+                in: 'Header',
             })
             .build();
 
         const documentSwagger = SwaggerModule.createDocument(app, configSwagger);
-
         SwaggerModule.setup(config.API_VERSION, app, documentSwagger);
 
-        // ------------------ PORT ------------------
-        const PORT = config.PORT;
-        const logging = new Logger('URL_SWAGGER');
+        // ------------------ COOKIE PARSE ------------------
 
-        await app.listen(PORT);
-        logging.log(`Application running on: http://${config.API_URL}:${PORT}/${config.API_VERSION}`);
+        app.use(cookieParser())
+
+        // ------------------ PORT ------------------
+
+        const PORT = config.PORT
+        const logging = new Logger('Swagger-library');
+        await app.listen(PORT, () => {
+            {
+                setTimeout(() => {
+                    logging.log(`Swagger UI: http://${config.API_URL}:${PORT}/${config.API_VERSION}`);
+                });
+            }
+        });
     }
 }

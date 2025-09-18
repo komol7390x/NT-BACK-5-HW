@@ -1,123 +1,237 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
+  OnModuleInit,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { AdminQueryService } from 'src/core/query/admin-query-db';
-import { CryptoService } from 'src/infrastructure/crypto/Crypto';
-import { ISuccess } from 'src/common/database/success-res/success-interface';
-import { successRes } from 'src/common/database/success-res/success-res';
-import { log } from 'util';
+import { BaseService } from 'src/infrastructure/base/base-service';
+import { AdminEntity } from 'src/core/entity/user/admin-entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CryptoService } from 'src/infrastructure/bcrypt/Crypto';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { TokenService } from 'src/infrastructure/token/Token';
+import { AdminRoles } from 'src/common/enum/Role';
+import { config } from 'src/config/env-config';
+import { ISuccessRes } from 'src/infrastructure/success-res/success-interface';
+import { successRes } from 'src/infrastructure/success-res/success-res';
+import type { IToken } from 'src/infrastructure/token/token-interface';
+import { toSkipTake } from 'src/infrastructure/paganation/skip-page';
+import { SignInAdminDto } from './dto/sign-in-admin.dto';
+import { TokenUser } from 'src/common/enum/Token-user';
+import { Response } from 'express';
 
 @Injectable()
-export class AdminService {
+export class AdminService
+  extends BaseService<CreateAdminDto, UpdateAdminDto, AdminEntity>
+  implements OnModuleInit
+{
   constructor(
-    private readonly db: AdminQueryService,
-    private readonly crypto: CryptoService,
-  ) {}
-  // --------------------- CREATE ---------------------
-  async create(createAdminDto: CreateAdminDto): Promise<ISuccess> {
-    const { password, ...rest } = createAdminDto;
+    @InjectRepository(AdminEntity)
+    private readonly adminRepo: Repository<AdminEntity>,
+    private readonly crypto:CryptoService ,
+    private readonly tokenService: TokenService,
+  ) {
+    super(adminRepo);
+  }
+  // ----------------------------------- ON MODULE INIT -----------------------------------
 
-    // hashed password
+  async onModuleInit(): Promise<void> {
+    try {
+      // check Role
+      const exist = await this.adminRepo.findOne({
+        where: { role: AdminRoles.SUPERADMIN },
+      });
+      if (!exist) {
+        // hashed password
+        const hashed_password = await this.crypto.encrypt(
+          config.SUPERADMIN.PASSWORD,
+        );
+
+        //created Super Admin
+        const superAdmin = this.adminRepo.create({
+          full_name: config.SUPERADMIN.FULL_NAME,
+          username: config.SUPERADMIN.USERNAME,
+          hashed_password,
+          role: AdminRoles.SUPERADMIN,
+        });
+
+        // save
+        await this.adminRepo.save(superAdmin);
+        console.log(`${AdminRoles.SUPERADMIN} is created`);
+      }
+    } catch (error) {
+      throw new InternalServerErrorException('Error on created super admin');
+    }
+  }
+
+  // ----------------------------------- CREATE ADMIN -----------------------------------
+  
+  async createAdmin(createAdminDto: CreateAdminDto): Promise<ISuccessRes> {
+    const { username, password, ...rest } = createAdminDto;
+
+    // check username
+    const existName = await this.adminRepo.findOne({ where: { username } });
+    if (existName) {
+      throw new ConflictException(
+        `this user => ${username} already exist on Admin`,
+      );
+    }
+
+    // enrypt password
     const hashed_password = await this.crypto.encrypt(password);
 
-    // save database
-    const result = await this.db.create('admin', {
-      hashed_password,
-      ...rest,
+    // save Admin
+    const data = this.adminRepo.create({ ...rest, username, hashed_password });
+
+    await this.adminRepo.save(data);
+  
+    const result=await this.findOneBy({where:{username}})
+    delete result.data[0].is_deleted
+    return successRes(result.data[0]);
+  }
+
+  // ----------------------------------- UPDATE ADMIN -----------------------------------
+
+  async updateAdmin(id: number, updateAdminDto: UpdateAdminDto, user: IToken) {
+    // dont update Super Admin
+    if (id == config.SUPERADMIN.ID) {
+      throw new ConflictException(`You cant update this ${id} on SUPERADMIN`);
+    }
+
+    // check admin
+    const admin = await this.adminRepo.findOne({ where: { id } });
+    if (!admin) {
+      throw new NotFoundException(`not found this id => ${id} on Admin`);
+    }
+
+    // check username
+    const { username, password,is_active } = updateAdminDto;
+    if (username) {
+      const existName = await this.adminRepo.findOne({ where: { username } });
+      if (existName && existName.id != id) {
+        throw new ConflictException(
+          `This username => ${username} already exist`,
+        );
+      }
+    }
+
+    // check Super Admin Role
+    let hashed_password = admin.hashed_password;
+    let active = admin.is_active;
+    if (user.role == AdminRoles.SUPERADMIN) {
+
+      // check password
+      if (password) {
+        hashed_password = await this.crypto.encrypt(password);
+      }
+
+      // check is active
+      if (is_active != null) {
+        active = is_active;
+      }
+    }
+
+    // update Admin
+    await this.adminRepo.update(
+      { id },
+      { username, hashed_password, is_active: active },
+    );
+    return await this.findOneById(id);
+  }
+
+  // ----------------------------------- SIGN IN -----------------------------------
+
+  async signIn(signInDto: SignInAdminDto, res: Response) {
+    const { username, password } = signInDto;
+
+    // check username
+    const admin = await this.adminRepo.findOne({ where: { username } });
+    if (!admin) {
+      throw new UnauthorizedException('Username or Password is incorect');
+    }
+
+    // check password
+    const checkPass = await this.crypto.decrypt(
+      password,
+      admin?.hashed_password as string,
+    );
+
+    if (!admin || !checkPass) {
+      throw new UnauthorizedException('Username or Password is incorect');
+    }
+
+    // give payload
+    const payload: IToken = {
+      id: Number(admin.id),
+      is_active: admin.is_active,
+      role: admin.role,
+    };
+
+    // access token
+    const accessToken = await this.tokenService.accessToken(payload);
+
+    // refresh token
+    const refreshToken = await this.tokenService.refreshToken(payload);
+
+    // write cookie
+    await this.tokenService.writeCookie(
+      res,
+      TokenUser.Admin,
+      refreshToken,
+      15,
+    );
+
+    return successRes({ token: accessToken });
+  }
+  // ----------------------------- FIND ALL PAGENATION -----------------------------
+  async findAllWithPagination(
+    query: string = '',
+    limit: number = 10,
+    page: number = 1,
+    username:string=''
+  ) {
+    
+    // fix skip and take
+    const { take, skip } = toSkipTake(page, limit);
+
+    // count
+    const [user, count] = await this.adminRepo.findAndCount({
+      where: {
+        full_name: ILike(`%${query}%`),
+        is_deleted: false,
+        role: AdminRoles.ADMIN,
+      } as unknown as FindOptionsWhere<AdminEntity>,
+      order: {
+        createdAt: 'DESC' as any,
+      },
+
+      select: {
+        id: true,
+        username:true,
+        full_name: true,
+        role: true,
+      } as any,
+      take,
+      skip,
     });
 
-    // return success
-    if (result?.message) {
-      return successRes(result);
-    } else {
-      throw new ConflictException(`error to: ${result?.error}`);
-    }
-  }
-  // --------------------- GET ALL ---------------------
-
-  async findAll(): Promise<ISuccess> {
-    // find all
-    const data = await this.db.findAll('admin');
+    // total page
+    const total_page = Math.ceil(count / limit);
 
     // return success
-    if (data?.message) {
-      return successRes(data?.data as any);
-    } else {
-      throw new ConflictException(`error to: ${data?.error}`);
-    }
-  }
-  // --------------------- GET ONE BY ID---------------------
-  async findOne(id: number) {
-    const data = await this.db.findById('admin', id);
-
-    // return success
-    if (data?.message) {
-      return successRes(data?.data);
-    } else {
-      if (data?.data) {
-        throw new NotFoundException(`this id => ${id} not found`);
-      }
-      throw new ConflictException(`error to: ${data?.error}`);
-    }
-  }
-  // --------------------- GET ONE BY ANY ---------------------
-
-  async findByOne(value: string) {
-    // find by one
-    const data = await this.db.findByOne('admin', value);
-
-    // return success
-    if (data?.message) {
-      return data.data;
-    } else {
-      return null;
-    }
-  }
-  // --------------------- UPDATE ---------------------
-
-  async update(id: number, updateAdminDto: UpdateAdminDto) {
-    const { password, ...rest } = updateAdminDto;
-
-    await this.findOne(id);
-
-    let hashed_password = '';
-    if (password) {
-      // hashed password
-      hashed_password = await this.crypto.encrypt(password);
-    }
-
-    // save database
-    const result = await this.db.update(
-      'admin',
-      {
-        hashed_password,
-        ...rest,
+    return successRes({
+      data: user,
+      mete: {
+        page,
+        total_page,
+        total_count: count,
+        hasNextPage: total_page > page,
       },
-      id,
-    );
-    // return success
-    if (result?.message) {
-      return successRes(result);
-    } else {
-      throw new ConflictException(`error to: ${result?.error}`);
-    }
-  }
-  // --------------------- DELETE ---------------------
-
-  async remove(id: number) {
-    await this.findOne(id);
-    // find by one
-    const data = await this.db.delete('admin', id);
-
-    // return success
-    if (data?.message) {
-      return successRes({});
-    } else {
-      throw new ConflictException(`error to: ${data?.data}`);
-    }
+    });
   }
 }

@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
-import { QueryDBModule } from 'src/core/query/query-db.module';
-import { CryptoService } from 'src/infrastructure/crypto/Crypto';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AdminEntity } from 'src/core/entity/user/admin-entity';
+import { TokenService } from 'src/infrastructure/token/Token';
+import { CryptoService } from 'src/infrastructure/bcrypt/Crypto';
+import { AuthService } from '../auth/auth.service';
 
 @Module({
-  imports:[QueryDBModule],
+  imports:[TypeOrmModule.forFeature([AdminEntity])],
   controllers: [AdminController],
-  providers: [AdminService,CryptoService],
+  providers: [AdminService,TokenService,CryptoService,AuthService],
+  exports:[AdminService]
 })
 export class AdminModule {}
+

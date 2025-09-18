@@ -1,0 +1,32 @@
+import { BaseEntity } from "src/common/database/base-entity";
+import { UserRoles } from "src/common/enum/Role";
+import { Column, Entity } from "typeorm";
+
+@Entity('user')
+export class UserEntity extends BaseEntity {
+
+    // ------------------ FULL NAME ------------------
+
+    @Column({ type: 'varchar' })
+    full_name: string
+
+    // ------------------ EMAIL ------------------
+
+    @Column({ type: 'varchar', unique: true })
+    email: string
+
+    // ------------------ PASSWORD ------------------
+
+    @Column({ type: 'varchar' })
+    hashed_password: string
+
+    // ------------------ ROLE ------------------
+
+    @Column({ type: 'enum', enum: UserRoles, default: UserRoles.READER })
+    role: UserRoles
+
+    // ------------------ IS ACTIVE ------------------
+
+    @Column({ type: 'boolean', nullable: true, default: true })
+    is_active: boolean
+}
