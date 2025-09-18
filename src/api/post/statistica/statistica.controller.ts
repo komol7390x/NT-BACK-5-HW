@@ -12,20 +12,20 @@ export class StatisticaController {
     private readonly history: Repository<BookHistoryEntity>,
   ) {}
   // --------------------- TOP BOOKS ---------------------
-  @Get('top-books')
-  async topBook(): Promise<ISuccessRes> {
+  @Get('top-user')
+  async topUser(): Promise<ISuccessRes> {
     const result = await this.history
       .createQueryBuilder('history')
       .innerJoin('history.user', 'user')
       .where('user.role = :role', { role: 'READER' })
       .select([
-        'user.id AS userId',
+        'user.id AS user_id',
         'user.email AS email',
-        'COUNT(history.id) AS totalBorrows',
+        'COUNT(history.id) AS total_borrows',
       ])
       .groupBy('user.id')
       .addGroupBy('user.email')
-      .orderBy('totalBorrows', 'DESC')
+      .orderBy('total_borrows', 'DESC')
       .limit(1)
       .getRawOne();
 
@@ -34,6 +34,18 @@ export class StatisticaController {
 
   // --------------------- TOP USER ---------------------
 
-  @Get('top-user')
-  topUser() {}
+  @Get('top-book')
+  async topBook(): Promise<ISuccessRes> {
+    const result = await this.history
+      .createQueryBuilder('history')
+      .innerJoin('history.books', 'book')
+      .select('book.id', 'book_id')
+      .addSelect('book.title', 'title')
+      .addSelect('COUNT(history.id)', 'total_borrows')
+      .groupBy('book.id, book.title')
+      .orderBy('total_borrows', 'DESC')
+      .getRawOne();
+
+    return successRes(result);
+  }
 }
