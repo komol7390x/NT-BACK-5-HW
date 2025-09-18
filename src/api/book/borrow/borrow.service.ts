@@ -9,6 +9,7 @@ import { UserService } from 'src/api/user/user/user.service';
 import { BookService } from '../book/book.service';
 import { config } from 'src/config/env-config';
 import { TransactionService } from 'src/infrastructure/transaction/Transaction';
+import { successRes } from 'src/infrastructure/success-res/success-res';
 
 @Injectable()
 export class BorrowService extends BaseService<
@@ -35,7 +36,7 @@ export class BorrowService extends BaseService<
 
   // ------------------------- CREATE -------------------------
   async createBorrow(createDto: CreateBorrowDto) {
-    const { user_id,book_id,return_date,...rest } = createDto;
+    const { user_id,book_id,return_date} = createDto;
 
     // check id
     await this.user.findOneById(user_id)
@@ -58,26 +59,37 @@ export class BorrowService extends BaseService<
       book_id
     }    
 
-    await this.transaction.createTransaction(result)
+    const trans=await this.transaction.createTransaction(result)
+    if(trans){
+      const id=trans
+      const result=await this.borrowRepo.findOne({where:{id},
+            relations:{books:true,user:true},
+            select:{id:true,return_date:true,due_date:true,borrow_date:true,
+                books:{
+                    id:true,
+                    title:true,
+                    author:true,
+                    published_year:true
+                },
+                user:{
+                  id:true,
+                  email:true,
+                  full_name:true
+                }
+            }
+        })
+        if(!result){
+          throw new ConflictException(`Transaction not done`)
+        }
+        return successRes(result)
+    }
   }
 
   // ------------------------- UPDATE -------------------------
   async updateBorrow(id: number, updateDto: UpdateBorrowDto) {
     const { borrow_date, due_date } = updateDto;
 
-    if (borrow_date && due_date) {
-      const exist = await this.borrowRepo.findOne({
-        where: { borrow_date, due_date },
-      });
-
-      if (exist && exist.id !== id) {
-        throw new ConflictException(
-          `borrow_date ${borrow_date} and due_date ${due_date} already exists`,
-        );
-      }
-    }
-
-    return super.update(id, updateDto);
+    
   }
 
     // ------------------------- CHECK DATE -------------------------

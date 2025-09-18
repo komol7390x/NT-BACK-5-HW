@@ -47,7 +47,7 @@ export class BookHistoryController {
   // ENDPOINT
   @Get(':id')
   // FIND ONE
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.bookHistoryRepo.findOneById(+id);
   }
 
@@ -63,7 +63,7 @@ export class BookHistoryController {
   @ApiBearerAuth()
   // UPDATE
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateBookHistoryDto: UpdateBookHistoryDto,
   ) {
     return this.bookHistoryRepo.updateBookHistory(+id, updateBookHistoryDto);
@@ -80,7 +80,7 @@ export class BookHistoryController {
   @Patch(':id/soft')
   @ApiBearerAuth()
   // SOFT DELETE
-  softRemove(@Param('id') id: string) {
+  softRemove(@Param('id') id: number) {
     return this.bookHistoryRepo.softDelete(+id);
   }
 
@@ -95,7 +95,7 @@ export class BookHistoryController {
   @Delete(':id')
   @ApiBearerAuth()
   // DELETE
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.bookHistoryRepo.remove(+id);
   }
 }

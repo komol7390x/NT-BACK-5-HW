@@ -25,7 +25,7 @@ import { TelegramService } from 'src/infrastructure/telegram/Telegram';
 
 @Injectable()
 export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserEntity> {
-  // ================================ CONSTRUCTOR ================================
+  // ------------------------------ CONSTRUCTOR ------------------------------
 
   constructor(
     @InjectRepository(UserEntity)
@@ -40,7 +40,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     super(userRepo);
   }
 
-  // ================================ CREATE USER (1/2) ================================
+  // ------------------------------ CREATE USER (1/2) ------------------------------
 
   async createUser(createUserDto: CreateUserDto): Promise<ISuccessRes> {
     // destructure
@@ -77,7 +77,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
   }
 
 
-  // ================================ REGSTIRATION USER (2/2) ================================
+  // ------------------------------ REGSTIRATION USER (2/2) ------------------------------
 
   async registrationOtp(emailWithOtp: EmailWithDto): Promise<ISuccessRes> {
 
@@ -118,7 +118,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     return super.create(user);
   }
 
-  // ================================ UPDATE ================================
+  // ------------------------------ UPDATE ------------------------------
 
   async updateUser(
     id: number,
@@ -171,7 +171,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     return await this.findOneById(id);
   }
 
-  // ============================ FORGET PASSWORD (1/3) ============================
+  // ------------------------------ FORGET PASSWORD (1/3) ------------------------------
 
   async forgetPassword(forgetPassword: EmailUserDto): Promise<ISuccessRes> {
     // get email
@@ -184,6 +184,9 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     // take OTP
     const otp = generatorOTP(6);
 
+    // telegram bot
+    // await this.bot.sendCode({email,otp})
+
     // save code on redis
     await this.redis.setRedis(email, String(otp));
 
@@ -191,7 +194,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     return successRes({ email, otp });
   }
 
-  // ============================ CONFIRM OTP FOR FORGET PASSWORD (2/3)============================
+  // ------------------------------ CONFIRM OTP FOR FORGET PASSWORD (2/3)------------------------------
   async confirmOtpWithEmail(
     forgetPassword: EmailWithDto,
   ): Promise<ISuccessRes> {
@@ -215,7 +218,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     return successRes({ email, message: 'success' });
   }
 
-  // ============================ UPDATE PASSwORD FOR FORGET PASSWORD (3/3)  ============================
+  // ------------------------------ UPDATE PASSwORD FOR FORGET PASSWORD (3/3)  ------------------------------
 
   async updatePassword(forgetPassword: EmailPassword): Promise<ISuccessRes> {
     const { new_password, email } = forgetPassword;
@@ -235,7 +238,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     return successRes({});
   }
 
-  // ================================ SIGN IN ================================
+  // ------------------------------ SIGN IN ------------------------------
 
   async signIn(signInDto: SignInUSerDto, res: Response): Promise<ISuccessRes> {
     const { email, password } = signInDto;
@@ -280,13 +283,13 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     return successRes({ token: accessToken });
   }
 
-  // ============================ FIND ALL PAGENATION ============================
+  // ------------------------------ FIND ALL PAGENATION ------------------------------
 
   async findAllWithPagination(
     query: string = '',
     limit: number = 10,
     page: number = 1,
-    findEmail:string='',
+    findEmail: string = '',
   ): Promise<ISuccessRes> {
     // fix skip and take
     const { take, skip } = toSkipTake(page, limit);
@@ -294,7 +297,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     // count
     const [user, count] = await this.userRepo.findAndCount({
       where: {
-        email:ILike(`%${findEmail}%`),
+        email: ILike(`%${findEmail}%`),
         full_name: ILike(`%${query}%`),
         is_deleted: false,
       } as unknown as FindOptionsWhere<UserEntity>,

@@ -6,6 +6,7 @@ import { BookHistoryEntity } from "src/core/entity/book/book-history-entity";
 import { BorrowEntity } from "src/core/entity/book/borrow-entity";
 import { Repository, DataSource } from "typeorm";
 import { Transactional } from 'typeorm-transactional'
+import { successRes } from "../success-res/success-res";
 
 @Injectable()
 export class TransactionService {
@@ -41,7 +42,12 @@ export class TransactionService {
             action: Action.BORROW
         }
         await this.book.update({ id: data.book_id }, { avialable: false })
-        await this.borrow.save(data)
         await this.bookHistory.save(history)
+        const result=await this.borrow.save(data)
+        if(result){
+            return Number(result.id)
+        }else{
+            return null
+        }
     }
 }

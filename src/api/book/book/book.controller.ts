@@ -68,7 +68,7 @@ export class BookController {
   @Get(':id')
 
   // FIND ONE
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.bookService.findOneById(+id,{
       where: { is_deleted: false},
       select: {
@@ -95,7 +95,7 @@ export class BookController {
   @ApiBearerAuth()
 
   // SOFT DELETE
-  sofRemove(@Param('id') id: string) {
+  sofRemove(@Param('id') id: number) {
     return this.bookService.softDelete(+id);
   }
   // ------------------ UPDATE ------------------
@@ -112,7 +112,7 @@ export class BookController {
   @ApiBearerAuth()
 
   //UPDATE
-  update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
+  update(@Param('id') id: number, @Body() updateBookDto: UpdateBookDto) {
     return this.bookService.updateBook(+id, updateBookDto);
   }
   // ------------------ DELETE ------------------
@@ -130,7 +130,7 @@ export class BookController {
   @ApiBearerAuth()
 
   // REMOVE
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.bookService.remove(+id);
   }
 
