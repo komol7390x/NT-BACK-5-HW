@@ -44,7 +44,25 @@ export class BookHistoryController {
 
   // FIND ALL
   findAll() {
-    return this.bookHistoryRepo.findAll();
+    return this.bookHistoryRepo.findAll({
+      where: { is_deleted: false },
+      relations: { user: true, books: true },
+      select: {
+        id: true,
+        action: true,
+        date: true,
+        user: {
+          id: true,
+          email: true,
+        },
+        books: {
+          id: true,
+          title: true,
+          avialable: true,
+        },
+      },
+      order: { updatedAt: 'DESC' },
+    });
   }
 
   // ------------------ GET ONE ------------------
@@ -67,7 +85,25 @@ export class BookHistoryController {
 
   // FIND ONE
   findOne(@Param('id') id: number) {
-    return this.bookHistoryRepo.findOneById(+id);
+    return this.bookHistoryRepo.findOneById(+id, {
+      where: { is_deleted: false },
+      relations: { user: true, books: true },
+      select: {
+        id: true,
+        action: true,
+        date: true,
+        user: {
+          id: true,
+          email: true,
+        },
+        books: {
+          id: true,
+          title: true,
+          avialable: true,
+        },
+      },
+      order: { updatedAt: 'DESC' },
+    });
   }
 
   // ------------------ UPDATE ------------------
