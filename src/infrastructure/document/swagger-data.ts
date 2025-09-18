@@ -85,7 +85,17 @@ export class SwaggerDate {
 
   // -------------------------------- BOOK --------------------------------
   static BookhistoryDate = {
-    id: 3,
-    action: 'Action',
+    id: 1,
+    action: 'RETURN',
+    date: '2025-09-18',
+    user: {
+      id: 1,
+      email: 'www.komol7390@gmail.com',
+    },
+    books: {
+      id: 1,
+      title: 'Lord Rings',
+      avialable: false,
+    },
   };
 }
