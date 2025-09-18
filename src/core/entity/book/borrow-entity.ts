@@ -1,6 +1,7 @@
 import { BaseEntity } from "src/common/database/base-entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import { BookEntity } from "./book-entity";
+import { UserEntity } from "../user/user-entity";
 
 @Entity('borrow')
 export class BorrowEntity extends BaseEntity {
@@ -34,7 +35,11 @@ export class BorrowEntity extends BaseEntity {
     overdue: boolean
     // ============================= RELEATION =============================
 
-    @ManyToOne(()=>BookEntity,(book)=>book.borrow,{onUpdate:'CASCADE',onDelete:'CASCADE'})
-    @JoinColumn({name:'book_id'})
-    books:BookEntity[]
+    @ManyToOne(() => BookEntity, (book) => book.borrow, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'book_id' })
+    books: BookEntity
+
+    @ManyToOne(() => UserEntity, (user) => user.borrows, { onUpdate: 'CASCADE', onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'user_id' })
+    user: UserEntity
 }

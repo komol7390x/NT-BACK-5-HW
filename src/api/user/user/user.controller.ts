@@ -47,10 +47,10 @@ export class UserController {
 
   // CONFIRM OTP FOR REGISTRED
   createLibrarian(@Body() createUserDto: CreateUserDto) {
-    const data={role:UserRoles.LIBRARIAN,...createUserDto}
+    const data = { role: UserRoles.LIBRARIAN, ...createUserDto }
     return this.userService.createUser(data);
   }
-    // ---------------------------------- READER REGIRSTRATION (1/2) ----------------------------------
+  // ---------------------------------- READER REGIRSTRATION (1/2) ----------------------------------
 
   // SWAGGER
   @ApiOperation({ summary: 'Created Reader (1/2)' })
@@ -66,7 +66,7 @@ export class UserController {
 
   // CONFIRM OTP FOR REGISTRED
   createReader(@Body() createUserDto: CreateUserDto) {
-    const data={role:UserRoles.READER,...createUserDto}
+    const data = { role: UserRoles.READER, ...createUserDto }
     return this.userService.createUser(data);
   }
   // ---------------------------------- CONFRIM OTP REGIRSTRATION (2/2) ----------------------------------
@@ -247,9 +247,9 @@ export class UserController {
 
   // PAGENATION
   findAllWithPagenation(@Query() queryDto: QueryPagination) {
-    const { query, limit, page } = queryDto;
+    const { query, limit, page ,findEmail} = queryDto;
 
-    return this.userService.findAllWithPagination(query, limit, page);
+    return this.userService.findAllWithPagination(query,limit,page,findEmail);
   }
 
   // ---------------------------------- GET ALL ----------------------------------
@@ -269,13 +269,17 @@ export class UserController {
   // FIND ALL
   findAll() {
     return this.userService.findAll({
-      where: { is_deleted: false},
+      relations: { borrows: true },
+      where: { is_deleted: false },
       select: {
         id: true,
-        role: true,
         email: true,
-        full_name:true,
-        is_active:true
+        is_active: true,
+        borrows: {
+          id: true,
+          borrow_date: true,
+          overdue: true
+        }
       },
       order: { createdAt: 'DESC' },
     });
@@ -297,7 +301,26 @@ export class UserController {
 
   // FIND ONE
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.findOneById(+id,{where:{is_deleted:false}});
+    return this.userService.findOneById(+id,
+      {
+        where: { is_deleted: false },
+        relations: { borrows: true },
+        select: {
+          id:true,
+          is_active:true,
+          role:true,
+          createdAt:true,
+          full_name:true,
+          email:true,
+          borrows: {
+            id: true,
+            borrow_date: true,
+            return_date:true,
+            due_date:true,
+            overdue: true
+          }
+        }
+      });
   }
 
   // ---------------------------------- UPDATE ----------------------------------

@@ -28,12 +28,11 @@ import { Response } from 'express';
 @Injectable()
 export class AdminService
   extends BaseService<CreateAdminDto, UpdateAdminDto, AdminEntity>
-  implements OnModuleInit
-{
+  implements OnModuleInit {
   constructor(
     @InjectRepository(AdminEntity)
     private readonly adminRepo: Repository<AdminEntity>,
-    private readonly crypto:CryptoService ,
+    private readonly crypto: CryptoService,
     private readonly tokenService: TokenService,
   ) {
     super(adminRepo);
@@ -70,7 +69,7 @@ export class AdminService
   }
 
   // ----------------------------------- CREATE ADMIN -----------------------------------
-  
+
   async createAdmin(createAdminDto: CreateAdminDto): Promise<ISuccessRes> {
     const { username, password, ...rest } = createAdminDto;
 
@@ -89,8 +88,8 @@ export class AdminService
     const data = this.adminRepo.create({ ...rest, username, hashed_password });
 
     await this.adminRepo.save(data);
-  
-    const result=await this.findOneBy({where:{username}})
+
+    const result = await this.findOneBy({ where: { username } })
     delete result.data[0].is_deleted
     return successRes(result.data[0]);
   }
@@ -110,7 +109,7 @@ export class AdminService
     }
 
     // check username
-    const { username, password,is_active } = updateAdminDto;
+    const { username, password, is_active, role } = updateAdminDto;
     if (username) {
       const existName = await this.adminRepo.findOne({ where: { username } });
       if (existName && existName.id != id) {
@@ -123,8 +122,11 @@ export class AdminService
     // check Super Admin Role
     let hashed_password = admin.hashed_password;
     let active = admin.is_active;
+    let adminRole = admin.role
     if (user.role == AdminRoles.SUPERADMIN) {
-
+      if (role) {
+        adminRole = role
+      }
       // check password
       if (password) {
         hashed_password = await this.crypto.encrypt(password);
@@ -139,7 +141,7 @@ export class AdminService
     // update Admin
     await this.adminRepo.update(
       { id },
-      { username, hashed_password, is_active: active },
+      { username, hashed_password, is_active: active, role },
     );
     return await this.findOneById(id);
   }
@@ -193,9 +195,9 @@ export class AdminService
     query: string = '',
     limit: number = 10,
     page: number = 1,
-    username:string=''
+    username: string = ''
   ) {
-    
+
     // fix skip and take
     const { take, skip } = toSkipTake(page, limit);
 
@@ -212,7 +214,7 @@ export class AdminService
 
       select: {
         id: true,
-        username:true,
+        username: true,
         full_name: true,
         role: true,
       } as any,

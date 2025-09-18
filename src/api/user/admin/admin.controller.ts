@@ -171,7 +171,7 @@ export class AdminController {
 
   // SWAGGER
   @ApiOperation({ summary: 'Find All Pagenation' })
-  @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.adminDate))
+  @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.adminAll))
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)

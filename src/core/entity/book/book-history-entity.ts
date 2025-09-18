@@ -7,6 +7,6 @@ export class BookHistoryEntity extends BaseEntity {
 
     // ------------------ TITLE ------------------
 
-    @Column({ type: 'varchar',nullable:true })
-    action: string
+    @Column({ type: 'enum', enum: Action, nullable: true, })
+    action: Action
 }

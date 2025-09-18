@@ -1,6 +1,7 @@
 import { BaseEntity } from "src/common/database/base-entity";
 import { UserRoles } from "src/common/enum/Role";
-import { Column, Entity } from "typeorm";
+import { Column, Entity, OneToMany } from "typeorm";
+import { BorrowEntity } from "../book/borrow-entity";
 
 @Entity('user')
 export class UserEntity extends BaseEntity {
@@ -29,4 +30,8 @@ export class UserEntity extends BaseEntity {
 
     @Column({ type: 'boolean', nullable: true, default: true })
     is_active: boolean
+
+    // ------------------ BORROW RELEATION ------------------
+    @OneToMany(() => BorrowEntity, (borrow) => borrow.user,{cascade:true})
+    borrows: BorrowEntity[]
 }

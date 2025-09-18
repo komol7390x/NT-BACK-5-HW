@@ -24,8 +24,8 @@ import { EmailPassword } from './dto/email-password.dto';
 import { TelegramService } from 'src/infrastructure/telegram/Telegram';
 
 @Injectable()
-export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEntity> {
-     // ================================ CONSTRUCTOR ================================
+export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserEntity> {
+  // ================================ CONSTRUCTOR ================================
 
   constructor(
     @InjectRepository(UserEntity)
@@ -37,7 +37,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
 
     // private readonly transaction: TransactionService,
   ) {
-    super(userRepo); 
+    super(userRepo);
   }
 
   // ================================ CREATE USER (1/2) ================================
@@ -65,7 +65,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
 
     // telegram bot
     // await this.bot.sendCode({email,otp})
-    
+
     // save JSON format
     const result = JSON.stringify(data);
 
@@ -73,7 +73,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
     await this.redis.setRedis(email, result, 600);
 
     // return success
-    return successRes({ email ,otp});
+    return successRes({ email, otp });
   }
 
 
@@ -91,9 +91,9 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
         `this is email => ${email} already exist on User`,
       );
     }
-    
+
     // confirm otp
-    const redisFind = await this.redis.getRedis(email);        
+    const redisFind = await this.redis.getRedis(email);
 
     if (!redisFind) {
       throw new BadRequestException('Email is invalid');
@@ -113,7 +113,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
     // delete otp on data
     delete user.otp;
     delete user.new_password;
-    
+
     // save create
     return super.create(user);
   }
@@ -131,7 +131,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
       throw new NotFoundException(`not found this id => ${id} on user`);
     }
 
-    const { email, password, is_active } = updateUserDto;
+    const { email, password, is_active, role } = updateUserDto;
 
     // check email
     if (email) {
@@ -145,7 +145,11 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
     // check Super Admin or Admin Role
     let hashed_password = customer.hashed_password;
     let active = customer.is_active;
+    let userRole = customer.role
     if (user.role == AdminRoles.SUPERADMIN || user.role == AdminRoles.ADMIN) {
+      if (role) {
+        userRole = role
+      }
       // check password
       if (password) {
         hashed_password = await this.crypto.encrypt(password);
@@ -160,7 +164,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
     // update users
     await this.userRepo.update(
       { id },
-      { email, hashed_password, is_active: active },
+      { email, hashed_password, is_active: active, role: userRole },
     );
 
     // show user
@@ -184,7 +188,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
     await this.redis.setRedis(email, String(otp));
 
 
-    return successRes({ email,otp });
+    return successRes({ email, otp });
   }
 
   // ============================ CONFIRM OTP FOR FORGET PASSWORD (2/3)============================
@@ -208,7 +212,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
     }
 
     // return email and url
-    return successRes({ email,message:'success' });
+    return successRes({ email, message: 'success' });
   }
 
   // ============================ UPDATE PASSwORD FOR FORGET PASSWORD (3/3)  ============================
@@ -258,7 +262,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
       is_active: customer.is_active,
       role: customer.role,
     };
-        
+
     // access token
     const accessToken = await this.tokenService.accessToken(payload);
 
@@ -282,6 +286,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
     query: string = '',
     limit: number = 10,
     page: number = 1,
+    findEmail:string='',
   ): Promise<ISuccessRes> {
     // fix skip and take
     const { take, skip } = toSkipTake(page, limit);
@@ -289,6 +294,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
     // count
     const [user, count] = await this.userRepo.findAndCount({
       where: {
+        email:ILike(`%${findEmail}%`),
         full_name: ILike(`%${query}%`),
         is_deleted: false,
       } as unknown as FindOptionsWhere<UserEntity>,
@@ -300,7 +306,7 @@ export class UserService extends BaseService<CreateUserDto,UpdateUserDto,UserEnt
         full_name: true,
         email: true,
         role: true,
-        is_active:true
+        is_active: true
       } as any,
       take,
       skip,

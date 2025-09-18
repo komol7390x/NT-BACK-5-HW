@@ -4,12 +4,14 @@ import { config } from "src/config/env-config";
 import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import cookieParser from 'cookie-parser'
+import { addTransactionalDataSource, initializeTransactionalContext } from "typeorm-transactional";
+import { DataSource } from "typeorm";
 
 export class Application {
     static async main(): Promise<void> {
 
         // ------------------ DATABASE ------------------
-        
+
         const app = await NestFactory.create(AppModule);
 
         // ------------------ VALIDATSIYA ------------------
@@ -37,7 +39,11 @@ export class Application {
         // ------------------ COOKIE PARSE ------------------
 
         app.use(cookieParser())
+        // ------------------ TRANSACTION------------------
 
+        initializeTransactionalContext();
+        const dataSource = app.get(DataSource);
+        addTransactionalDataSource(dataSource);
         // ------------------ PORT ------------------
 
         const PORT = config.PORT

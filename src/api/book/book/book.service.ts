@@ -23,9 +23,7 @@ export class BookService extends BaseService<CreateBookDto, UpdateBookDto, BookE
 
   // ------------------------- UPDATE -------------------------
   async updateBook(id:number,updateBook: UpdateBookDto) {
-    // check id
-    console.log(111111);
-    
+    // check id    
     await this.findOneById(id)
     
     // exist title

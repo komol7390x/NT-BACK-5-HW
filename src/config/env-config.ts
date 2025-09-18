@@ -25,6 +25,8 @@ type ConfigType = {
     UPDATE_URL:string,
 
     BOT_TOKEN:string
+
+    BORROW_TIME:number
 }
 
 export const config: ConfigType = {
@@ -50,6 +52,9 @@ export const config: ConfigType = {
     OTP_NUMBER:Number(process.env.OTP_NUMBER),
     UPDATE_URL:String(process.env.UPDATE_URL),
 
-    BOT_TOKEN:String(process.env.BOT_TOKEN)
+    BOT_TOKEN:String(process.env.BOT_TOKEN),
+
+    BORROW_TIME:Number(process.env.BORROW_TIME)
 }
+
 

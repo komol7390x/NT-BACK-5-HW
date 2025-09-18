@@ -6,11 +6,12 @@ import { AdminEntity } from 'src/core/entity/user/admin-entity';
 import { TokenService } from 'src/infrastructure/token/Token';
 import { CryptoService } from 'src/infrastructure/bcrypt/Crypto';
 import { AuthService } from '../auth/auth.service';
+import { RedisService } from 'src/infrastructure/redis/Redis';
 
 @Module({
   imports:[TypeOrmModule.forFeature([AdminEntity])],
   controllers: [AdminController],
-  providers: [AdminService,TokenService,CryptoService,AuthService],
+  providers: [AdminService,TokenService,CryptoService,AuthService,RedisService],
   exports:[AdminService]
 })
 export class AdminModule {}

@@ -22,7 +22,7 @@ import { AccessRoles } from 'src/common/decorator/roles-decorator';
 
 @Controller('borrow')
 export class BorrowController {
-  constructor(private readonly borrowService: BorrowService) {}
+  constructor(private readonly borrowService: BorrowService) { }
 
   // ------------------ CREATE ------------------
   //SWAGGER
@@ -62,8 +62,15 @@ export class BorrowController {
   //FINDALL
   findAll() {
     return this.borrowService.findAll({
+      relations: { books: true,user:true },
       where: { is_deleted: false },
-      select:{borrow_date:true,due_date:true,overdue:true},
+      select: {
+        borrow_date: true,
+        due_date: true,
+        overdue: true,
+        books: { id: true, title: true },
+        user:{id:true,email:true,full_name:true}
+      },
       order: { createdAt: 'DESC' },
     });
   }

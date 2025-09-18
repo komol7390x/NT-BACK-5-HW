@@ -8,7 +8,7 @@ export class QueryPagination {
     @ApiPropertyOptional({
         type: 'string',
         description: 'Query for search on name',
-        example: 'Alisher'
+        example: 'John'
     })
     @IsString()
     @IsOptional()
@@ -35,4 +35,14 @@ export class QueryPagination {
     @Type(() => Number)
     @IsOptional()
     limit?: number
+        // ---------------------------- EMAIL ----------------------------
+    @ApiPropertyOptional({
+        type: 'string',
+        description: 'Query for search on email',
+        example: 'www'
+    })
+    @IsString()
+    @IsOptional()
+    findEmail?: string
+
 }

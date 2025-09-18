@@ -45,11 +45,16 @@ export class BookController {
   // FIND ALL
   findAll() {
     return this.bookService.findAll({
+      relations:{borrow:true},
       where: { is_deleted: false},
       select: {
         id: true,
         title: true,
-        avialable:true
+        avialable:true,
+        borrow:{
+          id:true,
+          borrow_date:true,
+        }
       },
       order: { createdAt: 'DESC' },
     });

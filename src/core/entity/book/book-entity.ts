@@ -29,5 +29,5 @@ export class BookEntity extends BaseEntity {
     // ============================= RELEATION =============================
 
     @OneToMany(() => BorrowEntity, (borrow) => borrow.books, { cascade: true })
-    borrow: BookEntity
+    borrow: BorrowEntity[]
 }
