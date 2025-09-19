@@ -8,35 +8,45 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
-export class BookService extends BaseService<CreateBookDto, UpdateBookDto, BookEntity> {
-  constructor(@InjectRepository(BookEntity) private readonly bookRepo: Repository<BookEntity>) { super(bookRepo) }
+export class BookService extends BaseService<
+  CreateBookDto,
+  UpdateBookDto,
+  BookEntity
+> {
+  constructor(
+    @InjectRepository(BookEntity)
+    private readonly bookRepo: Repository<BookEntity>,
+  ) {
+    super(bookRepo);
+  }
 
   // ------------------------- CREATE -------------------------
   async createBook(createDto: CreateBookDto) {
-    const { title } = createDto
-    const exist = await this.bookRepo.findOne({ where: { title } })
+    const { title } = createDto;
+    const exist = await this.bookRepo.findOne({ where: { title } });
     if (exist) {
-      throw new ConflictException(`this book => ${title} already exist on Book`)
+      throw new ConflictException(
+        `this book => ${title} already exist on Book`,
+      );
     }
-    return super.create(createDto)
+    return super.create(createDto);
   }
 
   // ------------------------- UPDATE -------------------------
-  async updateBook(id:number,updateBook: UpdateBookDto) {
+  async updateBook(id: number, updateBook: UpdateBookDto) {
     // check id
-    console.log(111111);
-    
-    await this.findOneById(id)
-    
-    // exist title
-    const { title } = updateBook
-    if (title) {
-      const exist = await this.bookRepo.findOne({ where: { title } })
-      if (exist) {
-        throw new ConflictException(`this book => ${title} already exist on Book`)
-      }
-      return super.update(id,updateBook)
-    }
-  }
+    await this.findOneById(id);
 
+    // exist title
+    const { title } = updateBook;
+    if (title) {
+      const exist = await this.bookRepo.findOne({ where: { title } });
+      if (exist) {
+        throw new ConflictException(
+          `this book => ${title} already exist on Book`,
+        );
+      }      
+    }
+    return super.update(id, updateBook);
+  }
 }

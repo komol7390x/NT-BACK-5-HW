@@ -7,6 +7,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { config } from 'src/config/env-config';
 import { JwtModule } from '@nestjs/jwt';
 import { AdminModule } from './user/admin/admin.module';
+import { StatisticaModule } from './post/statistica/statistica.module';
+
 
 @Module({
   // -------------------- DATABASE --------------------
@@ -25,6 +27,6 @@ import { AdminModule } from './user/admin/admin.module';
 
     // -------------------- MODULE --------------------
 
-    UserModule, BookModule, BorrowModule, BookHistoryModule, AdminModule],
+    UserModule, BookModule, BorrowModule, BookHistoryModule, AdminModule, StatisticaModule],
 })
 export class AppModule { }

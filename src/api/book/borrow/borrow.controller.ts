@@ -8,6 +8,7 @@ import {
   Delete,
   HttpStatus,
   UseGuards,
+  ConflictException,
 } from '@nestjs/common';
 import { BorrowService } from './borrow.service';
 import { CreateBorrowDto } from './dto/create-borrow.dto';
@@ -19,6 +20,8 @@ import { AuthGuard } from 'src/common/guard/auth-guard';
 import { RolesGuard } from 'src/common/guard/role-guard';
 import { AdminRoles, UserRoles } from 'src/common/enum/Role';
 import { AccessRoles } from 'src/common/decorator/roles-decorator';
+import { GetUser } from 'src/common/decorator/get-request';
+import type { IToken } from 'src/infrastructure/token/token-interface';
 
 @Controller('borrow')
 export class BorrowController {
@@ -36,15 +39,27 @@ export class BorrowController {
   )
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.LIBRARIAN)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER)
 
   //ENDPONT
   @Post()
   @ApiBearerAuth()
 
   // CREATE
-  create(@Body() createBorrowDto: CreateBorrowDto) {
-    return this.borrowService.createBorrow(createBorrowDto);
+  create(
+    @Body() createBorrowDto: CreateBorrowDto,
+    @GetUser('user') user: IToken,
+  ) {
+    const { user_id } = createBorrowDto;
+    if (
+      user.id == user_id ||
+      user.role == AdminRoles.SUPERADMIN ||
+      user.role == AdminRoles.ADMIN
+    ) {
+      return this.borrowService.createBorrow(createBorrowDto);
+    } else {
+      throw new ConflictException(`You areant create this borrow`);
+    }
   }
 
   // ------------------ GET ALL ------------------
@@ -56,14 +71,27 @@ export class BorrowController {
       SwaggerDate.borrowDate,
     ]),
   )
+
+  // GUARD
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN)
+
   //ENDPONT
   @Get()
+  @ApiBearerAuth()
 
   //FINDALL
   findAll() {
     return this.borrowService.findAll({
+      relations: { books: true, user: true },
       where: { is_deleted: false },
-      select:{borrow_date:true,due_date:true,overdue:true},
+      select: {
+        borrow_date: true,
+        due_date: true,
+        overdue: true,
+        books: { id: true, title: true },
+        user: { id: true, email: true, full_name: true },
+      },
       order: { createdAt: 'DESC' },
     });
   }
@@ -72,44 +100,97 @@ export class BorrowController {
   // SWAGGER
   @ApiOperation({ summary: 'Get One Borrow' })
   @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.borrowDate))
+
+  // GUARD
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN)
+
   // ENDPONT
   @Get(':id')
-
+  @ApiBearerAuth()
   // GET ONE
-  findOne(@Param('id') id: string) {
-    return this.borrowService.findOneById(+id, {
-      where: { is_deleted: false },
-      take: 1,
-    });
+  async findOne(@Param('id') id: number, @GetUser('user') user: IToken) {
+    //check user id
+    const { data } = await this.borrowService.findOneById(id);
+    if (
+      data[0].user_id == user.id ||
+      user.role == AdminRoles.SUPERADMIN ||
+      user.role == AdminRoles.ADMIN
+    ) {
+      return this.borrowService.findOneById(+id, {
+        relations: { books: true, user: true },
+        where: { is_deleted: false },
+        select: {
+          id: true,
+          borrow_date: true,
+          due_date: true,
+          return_date: true,
+          overdue: true,
+          books: {
+            id: true,
+            title: true,
+            avialable: true,
+          },
+          user: {
+            id: true,
+            full_name: true,
+            email: true,
+            is_active: true,
+          },
+        },
+        take: 1,
+      });
+    } else {
+      throw new ConflictException(`You areant show this borrow`);
+    }
   }
 
   // ------------------ UPDATE ------------------
   // SWAGGER
   @ApiOperation({ summary: 'Update Borrow' })
   @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.borrowDate))
+
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.LIBRARIAN)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN)
+
   // ENDPONT
   @Patch(':id')
   @ApiBearerAuth()
+
   // UPDATE
-  update(@Param('id') id: string, @Body() updateBorrowDto: UpdateBorrowDto) {
-    return this.borrowService.updateBorrow(+id, updateBorrowDto);
+  update(
+    @Param('id') id: number,
+    @Body() updateBorrowDto: UpdateBorrowDto,
+    @GetUser('user') user: IToken,
+  ) {
+    const { user_id } = updateBorrowDto;
+    if (
+      user.id == user_id ||
+      user.role == AdminRoles.SUPERADMIN ||
+      user.role == AdminRoles.ADMIN
+    ) {
+      return this.borrowService.updateBorrow(id, updateBorrowDto,user);
+    } else {
+      throw new ConflictException(`You areant update this borrow`);
+    }
   }
 
   // ------------------ SOFT DELETE ------------------
   // SWAGGER
   @ApiOperation({ summary: 'Soft Delete Borrow' })
   @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.borrowDate))
+
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.LIBRARIAN)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER)
+
   // ENDPONT
   @Patch(':id/soft')
   @ApiBearerAuth()
+
   // SOFT DELETE
-  softRemove(@Param('id') id: string) {
+  softRemove(@Param('id') id: number) {
     return this.borrowService.softDelete(+id);
   }
 
@@ -124,7 +205,7 @@ export class BorrowController {
   @Delete(':id')
   @ApiBearerAuth()
   //  DELETE
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.borrowService.remove(+id);
   }
 }

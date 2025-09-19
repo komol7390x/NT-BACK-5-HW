@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
@@ -12,7 +22,7 @@ import { AccessRoles } from 'src/common/decorator/roles-decorator';
 
 @Controller('book')
 export class BookController {
-  constructor(private readonly bookService: BookService) { }
+  constructor(private readonly bookService: BookService) {}
   // ------------------ CREATE ------------------
   // SWAGGER
   @ApiOperation({ summary: 'Created Book' })
@@ -38,18 +48,28 @@ export class BookController {
   // ------------------ GET ALL ------------------
   // SWAGGER
   @ApiOperation({ summary: 'Get All Book' })
-  @ApiResponse(SwaggerResponse.ApiSuccessResponse([SwaggerDate, SwaggerDate.bookDate]))
-
+  @ApiResponse(
+    SwaggerResponse.ApiSuccessResponse([SwaggerDate, SwaggerDate.bookDate]),
+  )
   @Get()
 
   // FIND ALL
   findAll() {
     return this.bookService.findAll({
-      where: { is_deleted: false},
+      relations: { borrow: true, history: true },
+      where: { is_deleted: false },
       select: {
         id: true,
         title: true,
-        avialable:true
+        avialable: true,
+        borrow: {
+          id: true,
+          borrow_date: true,
+        },
+        history: {
+          id: true,
+          action: true,
+        },
       },
       order: { createdAt: 'DESC' },
     });
@@ -58,28 +78,37 @@ export class BookController {
   // SWAGGER
   @ApiOperation({ summary: 'Get One Book' })
   @ApiResponse(SwaggerResponse.ApiSuccessResponse([SwaggerDate.bookDate]))
-
-
   @Get(':id')
 
   // FIND ONE
-  findOne(@Param('id') id: string) {
-    return this.bookService.findOneById(+id,{
-      where: { is_deleted: false},
+  findOne(@Param('id') id: number) {
+    return this.bookService.findOneById(+id, {
+      relations: { borrow: true, history: true },
+      where: { is_deleted: false },
       select: {
         id: true,
         title: true,
-        avialable:true,
-        createdAt:true,
-        author:true,
-        published_year:true
-      }});
+        avialable: true,
+        createdAt: true,
+        author: true,
+        published_year: true,
+        borrow: {
+          id: true,
+          return_date: true,
+          due_date: true,
+          borrow_date: true,
+        },
+        history: {
+          id: true,
+          date: true,
+          createdAt: true,
+        },
+      },
+    });
   }
   // ------------------ SOFT DELETE ------------------
   @ApiOperation({ summary: 'Soft Delete Book' })
-  @ApiResponse(
-    SwaggerResponse.ApiSuccessResponse({}),
-  )
+  @ApiResponse(SwaggerResponse.ApiSuccessResponse({}))
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
@@ -90,14 +119,12 @@ export class BookController {
   @ApiBearerAuth()
 
   // SOFT DELETE
-  sofRemove(@Param('id') id: string) {
+  sofRemove(@Param('id') id: number) {
     return this.bookService.softDelete(+id);
   }
   // ------------------ UPDATE ------------------
   @ApiOperation({ summary: 'Update Book' })
-  @ApiResponse(
-    SwaggerResponse.ApiSuccessResponse(SwaggerDate.bookDate),
-  )
+  @ApiResponse(SwaggerResponse.ApiSuccessResponse(SwaggerDate.bookDate))
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
   @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.LIBRARIAN)
@@ -107,27 +134,21 @@ export class BookController {
   @ApiBearerAuth()
 
   //UPDATE
-  update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
+  update(@Param('id') id: number, @Body() updateBookDto: UpdateBookDto) {
     return this.bookService.updateBook(+id, updateBookDto);
   }
   // ------------------ DELETE ------------------
   @ApiOperation({ summary: 'Delete Book' })
-  @ApiResponse(
-    SwaggerResponse.ApiSuccessResponse({}),
-  )
+  @ApiResponse(SwaggerResponse.ApiSuccessResponse({}))
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
   @AccessRoles(AdminRoles.SUPERADMIN)
-
-
   @Delete(':id')
   @ApiBearerAuth()
 
   // REMOVE
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.bookService.remove(+id);
   }
-
-
 }

@@ -1,32 +1,44 @@
-import { BaseEntity } from "src/common/database/base-entity";
-import { UserRoles } from "src/common/enum/Role";
-import { Column, Entity } from "typeorm";
+import { BaseEntity } from 'src/common/database/base-entity';
+import { UserRoles } from 'src/common/enum/Role';
+import { Column, Entity, OneToMany } from 'typeorm';
+import { BorrowEntity } from '../book/borrow-entity';
+import { BookEntity } from '../book/book-entity';
+import { BookHistoryEntity } from '../book/book-history-entity';
 
 @Entity('user')
 export class UserEntity extends BaseEntity {
+  // ------------------ FULL NAME ------------------
 
-    // ------------------ FULL NAME ------------------
+  @Column({ type: 'varchar' })
+  full_name: string;
 
-    @Column({ type: 'varchar' })
-    full_name: string
+  // ------------------ EMAIL ------------------
 
-    // ------------------ EMAIL ------------------
+  @Column({ type: 'varchar', unique: true })
+  email: string;
 
-    @Column({ type: 'varchar', unique: true })
-    email: string
+  // ------------------ PASSWORD ------------------
 
-    // ------------------ PASSWORD ------------------
+  @Column({ type: 'varchar' })
+  hashed_password: string;
 
-    @Column({ type: 'varchar' })
-    hashed_password: string
+  // ------------------ ROLE ------------------
 
-    // ------------------ ROLE ------------------
+  @Column({ type: 'enum', enum: UserRoles, default: UserRoles.READER })
+  role: UserRoles;
 
-    @Column({ type: 'enum', enum: UserRoles, default: UserRoles.READER })
-    role: UserRoles
+  // ------------------ IS ACTIVE ------------------
 
-    // ------------------ IS ACTIVE ------------------
+  @Column({ type: 'boolean', nullable: true, default: true })
+  is_active: boolean;
 
-    @Column({ type: 'boolean', nullable: true, default: true })
-    is_active: boolean
+  // ------------------ BORROW RELEATION ------------------
+  @OneToMany(() => BorrowEntity, (borrow) => borrow.user, { cascade: true })
+  borrows: BorrowEntity[];
+
+  // ------------------ BOOK RELEATION ------------------
+  @OneToMany(() => BookHistoryEntity, (borrow) => borrow.user, {
+    cascade: true,
+  })
+  history: BookHistoryEntity[];
 }

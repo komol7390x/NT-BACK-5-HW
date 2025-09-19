@@ -1,9 +1,27 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Res, ParseIntPipe, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  Res,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from '../auth/auth.service';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { SwaggerResponse } from 'src/common/swagger/swagger-response';
 import { SwaggerDate } from 'src/infrastructure/document/swagger-data';
 import { AuthGuard } from 'src/common/guard/auth-guard';
@@ -25,11 +43,10 @@ import type { IToken } from 'src/infrastructure/token/token-interface';
 
 @Controller('user')
 export class UserController {
-
   constructor(
     private readonly userService: UserService,
-    private readonly authService: AuthService
-  ) { }
+    private readonly authService: AuthService,
+  ) {}
 
   // ---------------------------------- LIBRARIAN REGIRSTRATION (1/2) ----------------------------------
 
@@ -47,10 +64,10 @@ export class UserController {
 
   // CONFIRM OTP FOR REGISTRED
   createLibrarian(@Body() createUserDto: CreateUserDto) {
-    const data={role:UserRoles.LIBRARIAN,...createUserDto}
+    const data = { role: UserRoles.LIBRARIAN, ...createUserDto };
     return this.userService.createUser(data);
   }
-    // ---------------------------------- READER REGIRSTRATION (1/2) ----------------------------------
+  // ---------------------------------- READER REGIRSTRATION (1/2) ----------------------------------
 
   // SWAGGER
   @ApiOperation({ summary: 'Created Reader (1/2)' })
@@ -66,7 +83,7 @@ export class UserController {
 
   // CONFIRM OTP FOR REGISTRED
   createReader(@Body() createUserDto: CreateUserDto) {
-    const data={role:UserRoles.READER,...createUserDto}
+    const data = { role: UserRoles.READER, ...createUserDto };
     return this.userService.createUser(data);
   }
   // ---------------------------------- CONFRIM OTP REGIRSTRATION (2/2) ----------------------------------
@@ -186,11 +203,12 @@ export class UserController {
   @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, 'ID')
 
   // ENDPOINT
-  @Post('signout')
+  @Post('signout:id')
   @ApiBearerAuth()
 
   // SIGN OUT
   signOut(
+    @Param('id', ParseIntPipe) id: number,
     @CookieGetter(TokenUser.User) token: string,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -235,7 +253,12 @@ export class UserController {
 
   // SWAGGER
   @ApiOperation({ summary: 'Find All Pagenation' })
-  @ApiResponse(SwaggerResponse.ApiSuccessResponse([SwaggerDate.userDate, SwaggerDate.userDate]))
+  @ApiResponse(
+    SwaggerResponse.ApiSuccessResponse([
+      SwaggerDate.userDate,
+      SwaggerDate.userDate,
+    ]),
+  )
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
@@ -247,16 +270,26 @@ export class UserController {
 
   // PAGENATION
   findAllWithPagenation(@Query() queryDto: QueryPagination) {
-    const { query, limit, page } = queryDto;
+    const { query, limit, page, findEmail } = queryDto;
 
-    return this.userService.findAllWithPagination(query, limit, page);
+    return this.userService.findAllWithPagination(
+      query,
+      limit,
+      page,
+      findEmail,
+    );
   }
 
   // ---------------------------------- GET ALL ----------------------------------
 
   // SWAGGER
   @ApiOperation({ summary: 'Get All User' })
-  @ApiResponse(SwaggerResponse.ApiSuccessResponse([SwaggerDate.userDate, SwaggerDate.userDate]))
+  @ApiResponse(
+    SwaggerResponse.ApiSuccessResponse([
+      SwaggerDate.userDate,
+      SwaggerDate.userDate,
+    ]),
+  )
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
@@ -269,13 +302,22 @@ export class UserController {
   // FIND ALL
   findAll() {
     return this.userService.findAll({
-      where: { is_deleted: false},
+      relations: { borrows: true, history: true },
+      where: { is_deleted: false },
       select: {
         id: true,
-        role: true,
         email: true,
-        full_name:true,
-        is_active:true
+        is_active: true,
+        borrows: {
+          id: true,
+          borrow_date: true,
+          overdue: true,
+        },
+        history: {
+          id: true,
+          date: true,
+          action: true,
+        },
       },
       order: { createdAt: 'DESC' },
     });
@@ -297,7 +339,31 @@ export class UserController {
 
   // FIND ONE
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.findOneById(+id,{where:{is_deleted:false}});
+    return this.userService.findOneById(+id, {
+      where: { is_deleted: false },
+      relations: { borrows: true, history: true },
+      select: {
+        id: true,
+        is_active: true,
+        role: true,
+        createdAt: true,
+        full_name: true,
+        email: true,
+        borrows: {
+          id: true,
+          borrow_date: true,
+          return_date: true,
+          due_date: true,
+          overdue: true,
+        },
+        history: {
+          id: true,
+          date: true,
+          action: true,
+          
+        },
+      },
+    });
   }
 
   // ---------------------------------- UPDATE ----------------------------------
