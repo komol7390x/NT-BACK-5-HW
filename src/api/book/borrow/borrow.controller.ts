@@ -109,7 +109,7 @@ export class BorrowController {
   @Get(':id')
   @ApiBearerAuth()
   // GET ONE
-  async findOne(@Param('id') id: number, @GetUser('user') user: IToken) {
+  async findOne(@Param('id') id: number, @GetUser('user') user: IToken) {    
     //check user id
     const { data } = await this.borrowService.findOneById(id);
     if (
@@ -164,7 +164,9 @@ export class BorrowController {
     @Body() updateBorrowDto: UpdateBorrowDto,
     @GetUser('user') user: IToken,
   ) {
-    const { user_id } = updateBorrowDto;
+    console.log(222);
+    
+    const { user_id } = updateBorrowDto;    
     if (
       user.id == user_id ||
       user.role == AdminRoles.SUPERADMIN ||

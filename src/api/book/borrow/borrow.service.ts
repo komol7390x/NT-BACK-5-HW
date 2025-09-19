@@ -87,6 +87,7 @@ export class BorrowService extends BaseService<
     const { data }: any = await this.findOneById(id);
     let userID = data.user_id;
     let bookID = data.book_id;
+    console.log(111);
 
     if (user.role == AdminRoles.SUPERADMIN || user.role == AdminRoles.ADMIN) {
       if (user_id) {
@@ -100,6 +101,7 @@ export class BorrowService extends BaseService<
         bookID = book_id;
       }
     }
+    
     if (return_date && overdue) {
       // check date
       const borrow_date = new Date().toISOString().split('T')[0];
@@ -157,6 +159,7 @@ export class BorrowService extends BaseService<
           id: true,
           title: true,
           author: true,
+          avialable:true
         },
       },
     });
