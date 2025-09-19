@@ -15,7 +15,7 @@ import { TelegramService } from 'src/infrastructure/telegram/Telegram';
   providers: [UserService, AuthService, CryptoService,
     TokenService,
     RedisService,
-    TelegramService
+    // TelegramService
   ],
   exports: [UserService]
 })

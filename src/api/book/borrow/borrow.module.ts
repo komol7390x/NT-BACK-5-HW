@@ -12,11 +12,12 @@ import { CryptoService } from 'src/infrastructure/bcrypt/Crypto';
 import { TokenService } from 'src/infrastructure/token/Token';
 import { TransactionService } from 'src/infrastructure/transaction/Transaction';
 import { BookHistoryEntity } from 'src/core/entity/book/book-history-entity';
+import { TelegramService } from 'src/infrastructure/telegram/Telegram';
 
 @Module({
   imports: [TypeOrmModule.forFeature([BorrowEntity, UserEntity, BookEntity, BookHistoryEntity])],
   controllers: [BorrowController],
-  providers: [BorrowService, BookService, UserService, RedisService, CryptoService, TokenService, TransactionService],
+  providers: [BorrowService, BookService, UserService, TelegramService, RedisService, CryptoService, TokenService, TransactionService],
   exports: [TransactionService]
 })
 export class BorrowModule { }

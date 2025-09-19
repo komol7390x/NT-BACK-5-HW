@@ -31,7 +31,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
     private readonly redis: RedisService,
-    private readonly bot:TelegramService,
+    // private readonly bot:TelegramService,
     private readonly crypto: CryptoService,
     private readonly tokenService: TokenService,
 
@@ -64,7 +64,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     const data = { ...rest, email, hashed_password, otp };
 
     // telegram bot
-    await this.bot.sendCode({email,otp})
+    // await this.bot.sendCode({email,otp})
 
     // save JSON format
     const result = JSON.stringify(data);
@@ -185,7 +185,7 @@ export class UserService extends BaseService<CreateUserDto, UpdateUserDto, UserE
     const otp = generatorOTP(6);
 
     // telegram bot
-    await this.bot.sendCode({email,otp})
+    // await this.bot.sendCode({email,otp})
 
     // save code on redis
     await this.redis.setRedis(email, String(otp));
