@@ -163,9 +163,7 @@ export class BorrowController {
     @Param('id') id: number,
     @Body() updateBorrowDto: UpdateBorrowDto,
     @GetUser('user') user: IToken,
-  ) {
-    console.log(222);
-    
+  ) {    
     const { user_id } = updateBorrowDto;    
     if (
       user.id == user_id ||
