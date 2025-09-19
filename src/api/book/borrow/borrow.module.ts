@@ -17,7 +17,11 @@ import { TelegramService } from 'src/infrastructure/telegram/Telegram';
 @Module({
   imports: [TypeOrmModule.forFeature([BorrowEntity, UserEntity, BookEntity, BookHistoryEntity])],
   controllers: [BorrowController],
-  providers: [BorrowService, BookService, UserService, TelegramService, RedisService, CryptoService, TokenService, TransactionService],
+  providers: [BorrowService, BookService, UserService,
+    //  TelegramService,
+      RedisService, CryptoService, TokenService, TransactionService],
   exports: [TransactionService]
 })
 export class BorrowModule { }
+
+
