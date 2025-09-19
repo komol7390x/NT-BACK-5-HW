@@ -103,7 +103,7 @@ export class BorrowController {
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN,UserRoles.READER)
 
   // ENDPONT
   @Get(':id')
@@ -152,7 +152,7 @@ export class BorrowController {
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER, UserRoles.LIBRARIAN)
 
   // ENDPONT
   @Patch(':id')
@@ -168,11 +168,12 @@ export class BorrowController {
     if (
       user.id == user_id ||
       user.role == AdminRoles.SUPERADMIN ||
-      user.role == AdminRoles.ADMIN
+      user.role == AdminRoles.ADMIN || 
+      user.role == UserRoles.LIBRARIAN
     ) {
       return this.borrowService.updateBorrow(id, updateBorrowDto, user);
     } else {
-      throw new ConflictException(`You areant update this borrow`);
+      throw new ConflictException(`You couldn't update this page`);
     }
   }
 
@@ -183,7 +184,7 @@ export class BorrowController {
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.LIBRARIAN)
 
   // ENDPONT
   @Patch(':id/soft')
