@@ -23,7 +23,7 @@ export class TransactionService {
     @InjectRepository(BorrowEntity)
     private readonly borrow: Repository<BorrowEntity>,
   ) {}
-
+// ------------------------------ CREATE ------------------------------
   @Transactional()
   async createTransaction(data: {
     borrow_date: string;
@@ -39,13 +39,18 @@ export class TransactionService {
       book_id,
       action: Action.BORROW,
     };
+
+    // update book
     await this.book.update({ id: data.book_id }, { avialable: false });
+
+    // save history save
     await this.bookHistory.save(history);
     const result = await this.borrow.save(data);
     if (result) {
       return Number(result.id);
-    }
+    }return null
   }
+// ------------------------------ UPDATE ------------------------------
 
   @Transactional()
   async updateTransaction(data: {
@@ -63,6 +68,11 @@ export class TransactionService {
       book_id,
       action: Action.BORROW,
     };
+    const historyId = await this.bookHistory.findOne({
+      where: { user_id, book_id },
+    });
+    
+    // if overdue is true
     if (overdue) {
       history = {
         date: borrow_date,
@@ -71,17 +81,15 @@ export class TransactionService {
         action: Action.RETURN,
       };
       await this.book.update({ id: data.book_id }, { avialable: true });
+      await this.bookHistory.update({ id: historyId?.id }, { ...history });
     }
     
-    const historyId = await this.bookHistory.findOne({
-      where: { user_id, book_id },
-    });
-    await this.bookHistory.update({ id: historyId?.id }, { ...history });
-
+    // borrow update
     const borrowId = await this.borrow.findOne({
       where: { user_id, book_id },
     });
  
+    // borrow update 
     const result = await this.borrow.update({ id: borrowId?.id }, { ...data });
     if (result.affected == 1 || result) {
       return Number(borrowId?.id);

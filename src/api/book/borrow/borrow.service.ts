@@ -16,8 +16,6 @@ import { TransactionService } from 'src/infrastructure/transaction/Transaction';
 import { successRes } from 'src/infrastructure/success-res/success-res';
 import type { IToken } from 'src/infrastructure/token/token-interface';
 import { AdminRoles } from 'src/common/enum/Role';
-import { ISuccessRes } from 'src/infrastructure/success-res/success-interface';
-import { any } from 'joi';
 
 @Injectable()
 export class BorrowService extends BaseService<
@@ -85,7 +83,7 @@ export class BorrowService extends BaseService<
 
   // ------------------------- UPDATE -------------------------
   async updateBorrow(id: number, updateDto: UpdateBorrowDto, user: IToken) {
-    const { return_date, user_id, book_id, overdue } = updateDto;
+    const { return_date, user_id, book_id, overdue} = updateDto;
     const { data }: any = await this.findOneById(id);
     let userID = data.user_id;
     let bookID = data.book_id;
