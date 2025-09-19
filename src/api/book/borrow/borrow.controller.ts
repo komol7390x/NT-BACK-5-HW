@@ -25,7 +25,7 @@ import type { IToken } from 'src/infrastructure/token/token-interface';
 
 @Controller('borrow')
 export class BorrowController {
-  constructor(private readonly borrowService: BorrowService) {}
+  constructor(private readonly borrowService: BorrowService) { }
 
   // ------------------ CREATE ------------------
   //SWAGGER
@@ -103,13 +103,13 @@ export class BorrowController {
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN,UserRoles.READER)
 
   // ENDPONT
   @Get(':id')
   @ApiBearerAuth()
   // GET ONE
-  async findOne(@Param('id') id: number, @GetUser('user') user: IToken) {
+  async findOne(@Param('id') id: number, @GetUser('user') user: IToken) {    
     //check user id
     const { data } = await this.borrowService.findOneById(id);
     if (
@@ -152,7 +152,7 @@ export class BorrowController {
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER, UserRoles.LIBRARIAN)
 
   // ENDPONT
   @Patch(':id')
@@ -164,15 +164,18 @@ export class BorrowController {
     @Body() updateBorrowDto: UpdateBorrowDto,
     @GetUser('user') user: IToken,
   ) {
-    const { user_id } = updateBorrowDto;
+    console.log(222);
+    
+    const { user_id } = updateBorrowDto;    
     if (
       user.id == user_id ||
       user.role == AdminRoles.SUPERADMIN ||
-      user.role == AdminRoles.ADMIN
+      user.role == AdminRoles.ADMIN || 
+      user.role == UserRoles.LIBRARIAN
     ) {
-      return this.borrowService.updateBorrow(id, updateBorrowDto,user);
+      return this.borrowService.updateBorrow(id, updateBorrowDto, user);
     } else {
-      throw new ConflictException(`You areant update this borrow`);
+      throw new ConflictException(`You couldn't update this page`);
     }
   }
 
@@ -183,7 +186,7 @@ export class BorrowController {
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.LIBRARIAN)
 
   // ENDPONT
   @Patch(':id/soft')

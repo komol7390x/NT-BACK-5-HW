@@ -16,7 +16,15 @@ import { BookHistoryEntity } from 'src/core/entity/book/book-history-entity';
 @Module({
   imports: [TypeOrmModule.forFeature([BorrowEntity, UserEntity, BookEntity, BookHistoryEntity])],
   controllers: [BorrowController],
-  providers: [BorrowService, BookService, UserService, RedisService, CryptoService, TokenService, TransactionService],
-  exports: [TransactionService]
+  providers: [
+    BorrowService,
+    BookService,
+    UserService,
+    RedisService,
+    CryptoService,
+    TokenService,
+    TransactionService,
+  ],
+  exports: [TransactionService],
 })
-export class BorrowModule { }
+export class BorrowModule {}

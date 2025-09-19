@@ -61,7 +61,7 @@ export class TransactionService {
     book_id: number;
     overdue: boolean;
   }) {
-    const { user_id, book_id, borrow_date, overdue } = data;
+    const { user_id, book_id, borrow_date, overdue } = data;    
     let history = {
       date: borrow_date,
       user_id,
@@ -72,7 +72,7 @@ export class TransactionService {
       where: { user_id, book_id },
     });
     
-    // if overdue is true
+    // if overdue is true    
     if (overdue) {
       history = {
         date: borrow_date,
