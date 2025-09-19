@@ -10,13 +10,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TelegramService } from 'src/infrastructure/telegram/Telegram';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([UserEntity])],
+  imports: [TypeOrmModule.forFeature([UserEntity])],
   controllers: [UserController],
-  providers: [UserService,AuthService,CryptoService,
+  providers: [UserService, AuthService, CryptoService,
     TokenService,
     RedisService,
-    // TelegramService
+    TelegramService
   ],
-  exports:[UserService]
+  exports: [UserService]
 })
-export class UserModule {}
+export class UserModule { }
