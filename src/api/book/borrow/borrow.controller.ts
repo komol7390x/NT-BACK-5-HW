@@ -25,7 +25,7 @@ import type { IToken } from 'src/infrastructure/token/token-interface';
 
 @Controller('borrow')
 export class BorrowController {
-  constructor(private readonly borrowService: BorrowService) {}
+  constructor(private readonly borrowService: BorrowService) { }
 
   // ------------------ CREATE ------------------
   //SWAGGER
@@ -152,7 +152,7 @@ export class BorrowController {
 
   // GUARD
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN)
+  @AccessRoles(AdminRoles.SUPERADMIN, AdminRoles.ADMIN, UserRoles.READER)
 
   // ENDPONT
   @Patch(':id')
@@ -170,7 +170,7 @@ export class BorrowController {
       user.role == AdminRoles.SUPERADMIN ||
       user.role == AdminRoles.ADMIN
     ) {
-      return this.borrowService.updateBorrow(id, updateBorrowDto,user);
+      return this.borrowService.updateBorrow(id, updateBorrowDto, user);
     } else {
       throw new ConflictException(`You areant update this borrow`);
     }

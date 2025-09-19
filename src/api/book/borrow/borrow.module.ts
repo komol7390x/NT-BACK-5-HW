@@ -25,3 +25,14 @@ import { TelegramService } from 'src/infrastructure/telegram/Telegram';
 export class BorrowModule { }
 
 
+module.exports = {
+  apps: [
+    {
+      name: "exam-app",
+      script: "dist/main.js",
+      env_file: ".env",
+      instances: 1,
+      watch: false 
+    }
+  ]
+};
