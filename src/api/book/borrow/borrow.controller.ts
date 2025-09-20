@@ -164,6 +164,7 @@ export class BorrowController {
     @Body() updateBorrowDto: UpdateBorrowDto,
     @GetUser('user') user: IToken,
   ) {    
+    
     const { user_id } = updateBorrowDto;    
     if (
       user.id == user_id ||

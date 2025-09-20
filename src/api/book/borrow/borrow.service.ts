@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateBorrowDto } from './dto/create-borrow.dto';
 import { UpdateBorrowDto } from './dto/update-borrow.dto';
@@ -83,10 +84,15 @@ export class BorrowService extends BaseService<
 
   // ------------------------- UPDATE -------------------------
   async updateBorrow(id: number, updateDto: UpdateBorrowDto, user: IToken) {
-    const { return_date, user_id, book_id, overdue} = updateDto;
-    const { data }: any = await this.findOneById(id);
-    let userID = data.user_id;
-    let bookID = data.book_id;
+    const { return_date, user_id, book_id, overdue } = updateDto;
+
+    const borrow = await this.borrowRepo.findOne({ where: { id } });
+    // check id borrow
+    if (!borrow) {
+      throw new NotFoundException(`not found this id => ${id} on Book`);
+    }
+    let userID = borrow.user_id;
+    let bookID = borrow.book_id;
 
     if (user.role == AdminRoles.SUPERADMIN || user.role == AdminRoles.ADMIN) {
       if (user_id) {
@@ -100,7 +106,7 @@ export class BorrowService extends BaseService<
         bookID = book_id;
       }
     }
-    
+
     if (return_date && overdue) {
       // check date
       const borrow_date = new Date().toISOString().split('T')[0];
@@ -158,7 +164,7 @@ export class BorrowService extends BaseService<
           id: true,
           title: true,
           author: true,
-          avialable:true
+          avialable: true,
         },
       },
     });
