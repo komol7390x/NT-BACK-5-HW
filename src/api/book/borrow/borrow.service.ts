@@ -135,7 +135,7 @@ export class BorrowService extends BaseService<
 
       const id = await this.transaction.updateTransaction(result);
 
-      if (id) return await this.returnBorrow(id);
+      if (id) return await this.returnBorrow(borrow.id);
       throw new ConflictException(`Error Transaction`);
     }
   }
