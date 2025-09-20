@@ -91,6 +91,18 @@ export class BorrowService extends BaseService<
     if (!borrow) {
       throw new NotFoundException(`not found this id => ${id} on Book`);
     }
+    // check book id
+    if (borrow.book_id != book_id || borrow.user_id != user_id) {
+      throw new ConflictException(
+        `you did not borrow this id => ${book_id} on book`,
+      );
+    }
+
+    if (borrow.overdue) {
+      throw new ConflictException(
+        `this book ${borrow?.books?.title ?? borrow?.book_id + '  id'} is already return`,
+      );
+    }
     let userID = borrow.user_id;
     let bookID = borrow.book_id;
 
