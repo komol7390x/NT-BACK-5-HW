@@ -3,35 +3,23 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "resolvePackageJsonExports": true,
-
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-
     "isolatedModules": true,
-    "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-
     "declaration": true,
     "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-
-    "target": "ES2023",
-
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "user.ts",
-    "src/core/entity/user"
-  ]
+  }
 }
