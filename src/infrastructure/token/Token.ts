@@ -25,7 +25,7 @@ export class TokenService {
         
         res.cookie(key, value, {
             httpOnly: true,
-            secure: true,
+            secure: false,
             sameSite: 'strict',
             maxAge: Number(time) * 60 * 60 * 1000
         })
