@@ -1,32 +1,39 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from './user/user/user.module';
-import { BookModule } from './book/book/book.module';
-import { BorrowModule } from './book/borrow/borrow.module';
-import { BookHistoryModule } from './book/book_history/book_history.module';
+import { RegisModule } from './regis/regis.module';
+import { LoginModule } from './login/login.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { config } from 'src/config/env-config';
-import { JwtModule } from '@nestjs/jwt';
-import { AdminModule } from './user/admin/admin.module';
-import { StatisticaModule } from './post/statistica/statistica.module';
-
+import { config } from 'src/config/envConfig';
+import { WinstonService } from 'src/common/winston/Winston';
+import { APP_FILTER } from '@nestjs/core';
+import { AllExceptionFilter } from 'src/common/exception/all-exception';
+import { ErrorEntity } from 'src/core/entities/error.entity';
+import { InfoEntity } from 'src/core/entities/info.entity';
+import { RegisEntity } from 'src/core/entities/regis.entity';
 
 @Module({
-  // -------------------- DATABASE --------------------
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      username: config.DB.USER,
+      host: config.DB.HOST,
+      password: config.DB.PASS,
+      port: config.DB.PORT,
+      database: config.DB.NAME,
 
-  imports: [TypeOrmModule.forRoot({
-    type: 'postgres',
-    url: (config.DB_URL),
-    synchronize: true,
-    entities: ['dist/core/entity/*.entity{.ts,.js}'],
-    autoLoadEntities: true, logging: ['error', 'warn'],
-  }),
-
-  // -------------------- JWT --------------------
-
-  JwtModule.register({ global: true }),
-
-    // -------------------- MODULE --------------------
-
-    UserModule, BookModule, BorrowModule, BookHistoryModule, AdminModule, StatisticaModule],
+      autoLoadEntities: true,
+      synchronize: true,
+      entities: [ErrorEntity, InfoEntity],
+    }),
+    RegisModule,
+    LoginModule,
+  ],
+  providers: [
+    WinstonService,
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionFilter,
+    },
+  ],
+  exports: [WinstonService],
 })
-export class AppModule { }
+export class AppModule {}
