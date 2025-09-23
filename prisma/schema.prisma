@@ -15,12 +15,17 @@ model User {
 }
 
 model Game {
-  id       Int     @id @default(autoincrement())
-  userId   Int
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  number   Int
-  guesses  Guess[]
-  finished Boolean @default(false)
+  id          Int     @id @default(autoincrement())
+  userId      Int
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  number      Int
+  guesses     Guess[]
+  finished    Boolean @default(false)
+
+  maxAttempts Int      @default(5)
+  attempts    Int      @default(0)
+  minRange    Int      @default(1)
+  maxRange    Int      @default(100)
 }
 
 model Guess {
@@ -30,3 +35,5 @@ model Guess {
   value  Int
   result String
 }
+
+

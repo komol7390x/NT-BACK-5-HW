@@ -1,22 +1,103 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { CreateGame1Dto } from './dto/create-user.dto';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.db';
+import { StartGameDto } from './dto/make-game.dto';
 
 @Injectable()
 export class GameService {
-  constructor(private readonly prisma: PrismaService) {}
-  // ------------------ CREATE ------------------
-  async create(create: CreateGame1Dto) {
-    const { name } = create;
+  constructor(private prisma: PrismaService) {}
+  // ----------------------- CREATE USER -----------------------
+  async createUser(name: string) {
     const exist = await this.prisma.user.findFirst({ where: { name } });
     if (exist) {
-      throw new ConflictException(`This is name ${name} already exist`);
+      throw new ConflictException(`this name ${name} already exist`);
     }
-    const data = await this.prisma.user.create({ data: create });
-    return {
-      message: 'success',
-      statusCode: 201,
-      data,
-    };
+    return this.prisma.user.create({ data: { name } });
+  }
+  // ----------------------- CREATE GAME -----------------------
+
+  async startGame(userId: number, dto: StartGameDto) {
+    const { maxAttempts, maxRange, minRange } = dto;
+
+    if (maxRange >= maxAttempts) {
+      throw new BadRequestException('min number must be less than max range');
+    }
+
+    const randomNumber =
+      Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+
+    return this.prisma.game.create({
+      data: {
+        userId,
+        number: randomNumber,
+        minRange,
+        maxRange,
+        maxAttempts,
+      },
+    });
+  }
+  // ----------------------- GAMES -----------------------
+
+  async makeGuess(gameId: number, value: number) {
+    const game = await this.prisma.game.findUnique({
+      where: { id: gameId },
+      include: { guesses: true },
+    });
+    if (!game) throw new NotFoundException('Game not found');
+
+    const { maxAttempts, finished, number, attempts } = game;
+
+    if (finished) throw new BadRequestException('Game already finished');
+
+    // check attempts
+    if (attempts >= maxAttempts) {
+      throw new BadRequestException('No attempts left');
+    }
+
+    let result: string;
+
+    if (value === number) {
+      // true
+      result = "to'g'ri";
+      await this.prisma.game.update({
+        where: { id: gameId },
+        data: { finished: true, attempts: { increment: 1 } },
+      });
+      // less
+    } else if (value < number) {
+      result = 'kichik';
+      await this.prisma.game.update({
+        where: { id: gameId },
+        data: { attempts: { increment: 1 } },
+      });
+
+      // big
+    } else {
+      result = 'katta';
+      await this.prisma.game.update({
+        where: { id: gameId },
+        data: { attempts: { increment: 1 } },
+      });
+    }
+
+    return this.prisma.guess.create({
+      data: {
+        gameId,
+        value,
+        result,
+      },
+    });
+  }
+  // ----------------------- HISTORY -----------------------
+
+  async getGameHistory(gameId: number) {
+    return this.prisma.game.findUnique({
+      where: { id: gameId },
+      include: { guesses: true },
+    });
   }
 }
