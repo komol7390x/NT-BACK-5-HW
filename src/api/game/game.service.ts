@@ -55,7 +55,7 @@ export class GameService {
 
     // check attempts
     if (attempts >= maxAttempts) {
-      throw new BadRequestException('No attempts left');
+      throw new BadRequestException('Not attempts');
     }
 
     let result: string;
