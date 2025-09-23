@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { date } from 'joi';
 import { PrismaService } from 'src/database/prisma.db';
 
 @Injectable()
@@ -61,10 +62,14 @@ export class GameService2 {
     const questionAsk = await this.prisma.question2.findMany();
 
     const random = Math.floor(Math.random() * questionAsk.length);
-    const { question, id } = questionAsk[random];
-    return { id, question };
-  }
 
+    const data = questionAsk[random];
+
+    if (!data) {
+      throw new NotFoundException(`not found ask`);
+    }
+    return { id: data.id, question: data.question };
+  }
   // ----------------------- TOP USER -----------------------
   async topUser() {
     const topUser = await this.prisma.user2.findMany({

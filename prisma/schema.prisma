@@ -7,6 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ------------------------------ GAME 1 ------------------------------
+
+model User1 {
+  id    Int    @id @default(autoincrement())
+  name  String
+  score Int    @default(0)
+}
+
+model Word1 {
+  id   Int    @id @default(autoincrement())
+  text String
+}
+
 // ------------------------------ GAME 2 ------------------------------
 
 model User2 {
