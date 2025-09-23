@@ -7,33 +7,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ------------------------------ GAME 3 ------------------------------
-model User {
+// ------------------------------ GAME 2 ------------------------------
+
+model User2 {
   id    Int    @id @default(autoincrement())
   name  String
-  games Game[]
+  score Int    @default(0)
 }
 
-model Game {
-  id          Int     @id @default(autoincrement())
-  userId      Int
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  number      Int
-  guesses     Guess[]
-  finished    Boolean @default(false)
-
-  maxAttempts Int      @default(5)
-  attempts    Int      @default(0)
-  minRange    Int      @default(1)
-  maxRange    Int      @default(100)
+model Question2 {
+  id       Int    @id @default(autoincrement())
+  question String
+  answer   String
 }
 
-model Guess {
+// ------------------------------ GAME 3 ------------------------------
+model User3 {
+  id    Int     @id @default(autoincrement())
+  name  String
+  games Game3[]
+}
+
+model Game3 {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  user     User3    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  number   Int
+  guesses  Guess3[]
+  finished Boolean  @default(false)
+
+  maxAttempts Int @default(5)
+  attempts    Int @default(0)
+  minRange    Int @default(1)
+  maxRange    Int @default(100)
+}
+
+model Guess3 {
   id     Int    @id @default(autoincrement())
   gameId Int
-  game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  game   Game3  @relation(fields: [gameId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   value  Int
   result String
 }
-
-

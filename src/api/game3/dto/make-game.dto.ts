@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min, Max, IsNotEmpty } from 'class-validator';
+import { IsInt, Min, Max, IsNotEmpty } from 'class-validator';
 
-export class StartGameDto {
+export class StartGameDto3 {
   @ApiProperty({ type: 'number', description: 'Max try ', example: 7 })
   @IsInt()
   @Min(1)

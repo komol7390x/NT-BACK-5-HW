@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt } from 'class-validator';
 
-export class MakeGuessDto {
+export class MakeGuessDto3 {
   @ApiProperty({ type: 'number', description: 'Number', example: 20 })
   @IsInt()
   value: number;
