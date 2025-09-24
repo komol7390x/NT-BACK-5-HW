@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { date } from 'joi';
 import { PrismaService } from 'src/database/prisma.db';
 
 @Injectable()
