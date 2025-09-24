@@ -71,3 +71,79 @@ mutation {
   }
 }
 # ----------------- POST -----------------
+# create
+mutation {
+  createPost(
+    createPostInput: {
+      title: "Film A"
+      description: "Ajoyib film"
+      price: 12000
+      quantity: 10
+      userId: 4
+    }
+  ) {
+    id
+    title
+    description
+    price
+    quantity
+    User {
+      id
+      name
+    }
+  }
+}
+
+# findall
+query {
+  posts {
+    id
+    title
+    description
+    price
+    quantity
+    User {
+      id
+      name
+      email
+    }
+  }
+}
+
+# findOne
+query{
+  post(id:5){
+    id
+    User{
+      id
+    }
+  }
+}
+
+# update
+mutation {
+  updatePost(
+    id: 4,
+    updatePostInput: {
+      title: "Yangilangan film"
+      description: "Yangilangan ta'rif"
+      price: 15000
+      quantity: 5
+      userId: 5
+    }
+  ) {
+    id
+    title
+    description
+    price
+    quantity
+  }
+}
+
+# delete
+mutation {
+  removePost(id: 4) {
+    id
+    title
+  }
+}

@@ -13,7 +13,7 @@ export class PostResolver {
     return this.postService.create(createPostInput);
   }
 
-  @Query(() => [Post], { name: 'post' })
+  @Query(() => [Post], { name: 'posts' })
   findAll() {
     return this.postService.findAll();
   }
@@ -24,9 +24,13 @@ export class PostResolver {
   }
 
   @Mutation(() => Post)
-  updatePost(@Args('updatePostInput') updatePostInput: UpdatePostInput) {
-    return this.postService.update(updatePostInput.id, updatePostInput);
+  updatePost(
+    @Args('id', { type: () => Int }) id: number,
+    @Args('updatePostInput') updatePostInput: UpdatePostInput
+  ) {
+    return this.postService.update(id, updatePostInput);
   }
+
 
   @Mutation(() => Post)
   removePost(@Args('id', { type: () => Int }) id: number) {

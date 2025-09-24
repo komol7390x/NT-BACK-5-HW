@@ -19,6 +19,6 @@ export class Post {
   @Field(() => Int)
   quantity: number;
 
-  @Field(() => User, { nullable: true })
+  @Field(() => User)
   User?: User;
 }
