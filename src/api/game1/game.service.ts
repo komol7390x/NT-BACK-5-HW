@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.db';
+import { PrismaService } from 'src/database/prisma.service';
 import shuffle from 'shuffle-words';
 
 @Injectable()
@@ -76,5 +76,4 @@ export class GameService1 {
       data: topUser,
     };
   }
-  
 }

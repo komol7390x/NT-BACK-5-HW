@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.db';
+import { PrismaService } from 'src/database/prisma.service';
 import { StartGameDto3 } from './dto/make-game.dto';
 
 @Injectable()

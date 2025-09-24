@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma.db';
+import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
 export class GameService2 {
