@@ -1,13 +1,13 @@
-import { HttpStatus, Injectable, Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { HttpStatus, Logger, ValidationPipe } from '@nestjs/common'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { config } from 'src/config/envConfig';
 
-@Injectable()
 export class Application {
   static async main(): Promise<void> {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule)
+
 
     // ------------------ VALIDATSIYA ------------------
 

@@ -1,0 +1,76 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input CreatePostInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input CreateUserInput {
+  """User age"""
+  age: Int!
+
+  """User Email"""
+  email: String!
+
+  """User name"""
+  name: String!
+
+  """User password"""
+  password: String!
+}
+
+type Mutation {
+  createPost(createPostInput: CreatePostInput!): Post!
+  createUser(createUserInput: CreateUserInput!): User!
+  removePost(id: Int!): Post!
+  removeUser(id: Int!): User!
+  updatePost(updatePostInput: UpdatePostInput!): Post!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+}
+
+type Post {
+  User: User
+  description: String!
+  id: Int!
+  price: Int!
+  quantity: Int!
+  title: String!
+}
+
+type Query {
+  post(id: Int!): Post!
+  user(id: Int!): User!
+  users: [User!]!
+}
+
+input UpdatePostInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input UpdateUserInput {
+  """User age"""
+  age: Int
+
+  """User Email"""
+  email: String
+  id: Int!
+
+  """User name"""
+  name: String
+
+  """User password"""
+  password: String
+}
+
+type User {
+  age: Int!
+  email: String!
+  id: Int!
+  name: String!
+  password: String!
+  post: [Post!]
+}

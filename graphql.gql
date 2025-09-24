@@ -1,0 +1,73 @@
+# ----------------- USER -----------------
+#  create
+mutation {
+  createUser(
+    createUserInput: {
+      name: "Komol"
+      email: "example@gmail.com"
+      age: 25
+      password: "@Komol1234!@#"
+    }
+  ) {
+    id
+    name
+    email
+    age
+  }
+}
+# getall
+query {
+  users {
+    id
+    name
+    email
+    age
+    post {
+      id
+      title
+      description
+    }
+  }
+}
+# get one
+query {
+  user (id:1) {
+    id
+    name
+    email
+    age
+    post {
+      id
+      title
+      description
+    }
+  }
+}
+
+# update
+
+mutation {
+  updateUser(
+    updateUserInput: {
+      id: 3
+      name: "Komol"
+      email: "example1@gmail.com"
+      age: 25
+      password: "@Komol1234!@#"
+    }
+  ) {
+    id
+    name
+    email
+    age
+  }
+}
+
+
+# delete
+mutation {
+  removeUser(id: 2) {
+    id
+  }
+}
+# ----------------- POST -----------------
