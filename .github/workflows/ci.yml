@@ -1,0 +1,42 @@
+name: Loyihani testlash
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ishchi katalog va package.json tekshirish
+        run: |
+          echo "Ishchi katalogdagi fayllar:"
+          ls
+          if [ -f package.json ]; then
+            echo "✅ package.json topildi"
+          else
+            echo "❌ package.json topilmadi"
+            exit 1
+          fi
+
+      - name: Node modules o'rnatish
+        run: npm install
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Build qilish
+        run: npx nest build
+
+      - name: Testlarni ishga tushirish
+        run: npm run test -- --passWithNoTests
