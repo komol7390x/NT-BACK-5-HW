@@ -34,7 +34,6 @@
 
         function sendMessage() {
             const message = document.getElementById('messageInput').value;
-            if (message.trim() === "") return;
             socket.emit('chat-message', message);
             document.getElementById('messageInput').value = "";
         }

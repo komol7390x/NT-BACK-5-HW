@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>🗺 Map Page (Socket.IO)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="back-btn" onclick="goHome()">⬅ Back</button>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        function goHome() {
+            window.location.href = "/map.html";
+        }
+
+        const map = L.map('map').setView([41.2995, 69.2401], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+
+        const marker = L.marker([41.2995, 69.2401]).addTo(map);
+        marker.bindPopup("<b>Salom user!</b><br>Bu Tashkent.").openPopup();
+
+        const socket = io("http://localhost:3003");
+
+
+        socket.on("map-location", (data) => {
+            console.log("📍 New location:", data);
+            marker.setLatLng([data.lat, data.lng]);
+            marker.bindPopup("📍 Live location update").openPopup();
+            map.setView([data.lat, data.lng], 13);
+        });
+
+    </script>
+</body>
+
+</html>

@@ -1,7 +1,7 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server
@@ -22,10 +22,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit('chat-message', message);
   }
 
-  @SubscribeMessage('map')
-  handleMap(@MessageBody() data: { lat: number; lng: number }) {
-    console.log('Map update:', data);
-    this.server.emit('map-update', data);
+  @SubscribeMessage('map-location')
+  handleLocation(@MessageBody() data: { lat: number; lng: number }) {
+    console.log('📍 Location update:', data);
+    this.server.emit('map-location', data);
   }
 
   @SubscribeMessage('notification')
