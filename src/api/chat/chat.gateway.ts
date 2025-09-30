@@ -17,9 +17,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('chat-message')
-  handleMessage(@MessageBody() message: string) {
-    console.log('Message', message);
-    this.server.emit('chat-message', message)
+  handleChat(@MessageBody() message: string) {
+    console.log('💬 Chat:', message);
+    this.server.emit('chat-message', message);
+  }
 
+  @SubscribeMessage('map')
+  handleMap(@MessageBody() data: { lat: number; lng: number }) {
+    console.log('Map update:', data);
+    this.server.emit('map-update', data);
+  }
+
+  @SubscribeMessage('notification')
+  handleNotification(@MessageBody() msg: string) {
+    console.log('🔔 Notification:', msg);
+    this.server.emit('notification', msg);
   }
 }
