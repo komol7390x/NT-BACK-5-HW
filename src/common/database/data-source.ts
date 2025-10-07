@@ -1,5 +1,4 @@
 import { config } from 'src/config/envConfig';
-import { InfoEntity } from 'src/core/entities/info.entity';
 import { DataSource } from 'typeorm';
 
 export const AppDataSource = new DataSource({
@@ -16,9 +15,9 @@ export const AppDataSource = new DataSource({
 
 AppDataSource.initialize()
   .then(() => {
-    console.log('Data Source has been initialized!');
+    console.log('Database is working');
     // bu yerda serverni ishga tushiring
   })
   .catch((err) => {
-    console.error('Error during Data Source initialization', err);
+    console.error('Database is not working', err);
   });

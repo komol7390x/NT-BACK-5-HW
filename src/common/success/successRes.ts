@@ -1,6 +1,6 @@
 // src/common/success/successRes.ts
 import { InfoEntity } from '../../core/entities/info.entity';
-import { AppDataSource } from '../data-source/data-source';
+import { AppDataSource } from '../database/data-source';
 import { WinstonService } from '../winston/Winston';
 
 export interface ISuccess {
