@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package store;
+
+message Store {
+    int32 id = 1;
+    string name = 2;
+    string address = 3;
+}
+
+message StoreId {
+    int32 id = 1;
+}
+
+message StoreList {
+    repeated Store stores = 1;
+}
+
+message Empty {}
+
+message CreateStoreDto {
+    string name = 1;
+    string address = 2;
+}
+
+message UpdateStoreDto {
+    int32 id = 1;
+    optional string name = 2;
+    optional string address = 3;
+}
+
+message Product {
+  int32 id = 1;
+  string name = 2;
+  float price = 3;
+  int32 storeId = 4;
+}
+
+message StoreWithProducts {
+  Store store = 1;
+  repeated Product products = 2;
+}
+
+service StoreService {
+    rpc CreateStore (CreateStoreDto) returns (Store);
+    rpc FindAll (Empty) returns (StoreList);
+    rpc FindOne (StoreId) returns (StoreWithProducts);
+    rpc UpdateStore (UpdateStoreDto) returns (Store);
+    rpc Remove (StoreId) returns (Empty);
+}
